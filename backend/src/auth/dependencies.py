@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 
 from typing import Annotated
 
+from passlib.context import CryptContext
+
 from jwt.exceptions import InvalidTokenError
 
 import jwt
@@ -13,6 +15,9 @@ import jwt
 from . import config as _config, schemas as _schemas, service as _service
 
 from .. import dependencies as _global_dependencies
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 

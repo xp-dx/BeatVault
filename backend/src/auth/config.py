@@ -1,6 +1,5 @@
 import os
 from dotenv import load_dotenv
-from passlib.context import CryptContext
 
 load_dotenv()
 

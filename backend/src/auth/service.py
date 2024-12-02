@@ -4,17 +4,17 @@ from sqlalchemy.orm import Session
 
 import jwt
 
-from . import config as _config
+from . import config as _config, dependencies as _dependencies
 
 from .. import models as _global_models
 
 
 def get_password_hash(password):
-    return _config.pwd_context.hash(password)
+    return _dependencies.pwd_context.hash(password)
 
 
 def verify_password(plain_password, hashed_password):
-    return _config.pwd_context.verify(plain_password, hashed_password)
+    return _dependencies.pwd_context.verify(plain_password, hashed_password)
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):

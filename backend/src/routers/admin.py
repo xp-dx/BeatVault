@@ -1,5 +1,8 @@
-# from fastapi import APIRouter
+from fastapi import APIRouter
 
-# router = APIRouter()
+router = APIRouter()
 
-# @router.get("/admin")
+
+@router.get("/admin")
+def admin():
+    return {"message": "Hello Admin"}
