@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from fastapi.security import OAuth2PasswordRequestForm
 
 from sqlalchemy.orm import Session
@@ -7,12 +7,29 @@ from typing import Annotated
 
 from datetime import timedelta
 
-from . import schemas as _schemas, service as _service, config as _config
+from . import schemas as _schemas, service as _service, config as _config, crud as _crud
 
 from ..dependencies import get_db
 
 
 router = APIRouter(tags=["auth"])
+
+
+@router.get("/registration")
+def registration(request: Request):
+    return "asd"
+
+
+@router.post("/registration")
+def registration(
+    new_user_form: Annotated[_schemas.UserCreate, Form()], db: Session = Depends(get_db)
+):
+    db_user = _service.get_user_by_username(db, new_user_form.username)
+    # if db_user:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_409_CONFLICT, detail="User already exists"
+    #     )
+    return _crud.create_user(db=db, user=new_user_form)
 
 
 @router.post("/login")

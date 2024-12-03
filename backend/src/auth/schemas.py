@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class Token(BaseModel):
@@ -12,4 +12,11 @@ class UserBase(BaseModel):
 
 class User(UserBase):
     id: int
-    disabled: bool = False
+    is_active: bool = True
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    username: str
+    password: str
+    is_artist: bool
