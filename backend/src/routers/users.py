@@ -1,4 +1,13 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+from sqlalchemy.orm import Session
+
+
+from .. import dependencies as _global_dependencies
+
+from src.auth.service import get_user_by_username
+from src.auth.schemas import User
+
 
 router = APIRouter()
 
@@ -14,5 +23,8 @@ async def read_user_me():
 
 
 @router.get("/users/{username}", tags=["users"])
-async def read_user(username: str):
-    return {"username": username}
+async def read_user(
+    username: str, db: Session = Depends(_global_dependencies.get_db)
+) -> User:
+    user = get_user_by_username(db=db, username=username)
+    return user

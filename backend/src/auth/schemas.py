@@ -11,12 +11,14 @@ class UserBase(BaseModel):
 
 
 class User(UserBase):
-    id: int
+    # id: int
+    username: str
+    is_artist: bool
     is_active: bool = True
 
 
-class UserCreate(BaseModel):
+class UserCreate(User):
     email: EmailStr
-    username: str
+    # username: str
     password: str
-    is_artist: bool
+    # is_artist: bool
