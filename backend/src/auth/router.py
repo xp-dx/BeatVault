@@ -25,10 +25,10 @@ def registration(
     new_user_form: Annotated[_schemas.UserCreate, Form()], db: Session = Depends(get_db)
 ):
     db_user = _service.get_user_by_username(db, new_user_form.username)
-    # if db_user:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_409_CONFLICT, detail="User already exists"
-    #     )
+    if db_user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="User already exists"
+        )
     return _crud.create_user(db=db, user=new_user_form)
 
 

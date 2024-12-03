@@ -32,8 +32,7 @@ class User(Base):
     is_artist = Column(Boolean, default=False)
     is_verified = Column(Boolean, default=False)
     is_superuser = Column(Boolean, default=False)
-
-    disabled = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True)
 
 
 # Albums
