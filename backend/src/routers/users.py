@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends
 
 from sqlalchemy.orm import Session
 
+from typing import Annotated
 
 from .. import dependencies as _global_dependencies
 
 from src.auth.service import get_user_by_username
 from src.auth.schemas import User
-
+from src.auth.dependencies import get_current_active_user
 
 router = APIRouter()
 
@@ -18,8 +19,8 @@ async def read_users():
 
 
 @router.get("/users/me", tags=["users"])
-async def read_user_me():
-    return {"username": "fakecurrentuser"}
+async def read_user_me(current_user: Annotated[User, Depends(get_current_active_user)]):
+    return current_user
 
 
 @router.get("/users/{username}", tags=["users"])

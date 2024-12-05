@@ -11,7 +11,6 @@ def create_user(db: Session, user: _schemas.UserCreate):
         username=user.username,
         email=user.email,
         hashed_password=hashed_password,
-        is_artist=user.is_artist,
     )
     db.add(db_user)
     db.commit()

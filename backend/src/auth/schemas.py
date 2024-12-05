@@ -6,18 +6,20 @@ class Token(BaseModel):
     token_type: str
 
 
+class TokenData(BaseModel):
+    username: str | None = None
+
+
 class UserBase(BaseModel):
     username: str
 
 
 class User(UserBase):
     # id: int
-    username: str
-    is_artist: bool
     is_active: bool = True
 
 
-class UserCreate(User):
+class UserCreate(UserBase):
     email: EmailStr
     # username: str
     password: str
