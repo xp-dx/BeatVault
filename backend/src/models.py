@@ -4,12 +4,25 @@ from sqlalchemy.orm import relationship
 from .database import Base
 
 # Many-to-Many ( artist_album )
-artist_album = Table(
-    "artist_album",
-    Base.metadata,
-    Column("artist_id", Integer(), ForeignKey("users.id")),
-    Column("album_id", Integer(), ForeignKey("albums.id")),
-)
+# artist_album = Table(
+#     "artist_album",
+#     Base.metadata,
+#     Column("artist_id", Integer(), ForeignKey("users.id")),
+#     Column("album_id", Integer(), ForeignKey("albums.id")),
+# )
+
+
+# Many-to-Many ( artist_album )
+class ArtistAlbum(Base):
+    __tablename__ = "artist_album"
+
+    artist_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    album_id = Column(Integer, ForeignKey("albums.id"), primary_key=True)
+
+    # Опционально: вы можете добавить отношения, если хотите
+    # artist = relationship("User", back_populates="albums")
+    # album = relationship("Album", back_populates="artists")
+
 
 # Many-to-Many ( artist_song )
 artist_song = Table(

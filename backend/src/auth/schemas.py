@@ -10,12 +10,16 @@ class TokenData(BaseModel):
     username: str | None = None
 
 
+class UserId(BaseModel):
+    id: int
+
+
 class UserBase(BaseModel):
     username: str
 
 
 class User(UserBase):
-    # id: int
+    id: int
     is_active: bool = True
 
 
