@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 
 import jwt
 
+import json
+
 from . import config as _config, dependencies as _dependencies
 
 from .. import models as _global_models
@@ -28,6 +30,15 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
+def authenticate_user(db: Session, username: str, password: str):
+    user = get_user_by_username(db, username)
+    if not user:
+        return False
+    if not verify_password(password, user.hashed_password):
+        return False
+    return user
+
+
 def get_user_by_username(db: Session, username: str):
     return (
         db.query(_global_models.User)
@@ -36,10 +47,9 @@ def get_user_by_username(db: Session, username: str):
     )
 
 
-def authenticate_user(db: Session, username: str, password: str):
-    user = get_user_by_username(db, username)
-    if not user:
-        return False
-    if not verify_password(password, user.hashed_password):
-        return False
-    return user
+def get_all_users(db: Session):
+    users = db.query(_global_models.User.id, _global_models.User.username).all()
+    users_json = []
+    for user in users:
+        users_json.append({"id": user[0], "username": user[1]})
+    return json.loads(json.dumps(users_json, default=str))

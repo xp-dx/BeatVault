@@ -41,7 +41,7 @@ class Album(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
-    description = Column(Text, index=True)
+    description = Column(Text, index=True, nullable=True)
     songs = relationship("Song")  # One-to-Many ( Many songs )
 
 
@@ -52,8 +52,10 @@ class Song(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     artist = Column(String, index=True)
-    album = Column(String, index=True)
+    # album = Column(String, index=True)
     genre = Column(String, index=True)
-    year = Column(Integer, index=True)
+    # year = Column(Integer, index=True)
     lyrics = Column(Text, index=True)
-    album_id = Column(Integer, ForeignKey("albums.id"))  # One-to-Many ( One album )
+    album_id = Column(
+        Integer, ForeignKey("albums.id"), nullable=True
+    )  # One-to-Many ( One album )

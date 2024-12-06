@@ -6,7 +6,7 @@ from typing import Annotated
 
 from .. import dependencies as _global_dependencies
 
-from src.auth.service import get_user_by_username
+from src.auth.service import get_user_by_username, get_all_users
 from src.auth.schemas import User
 from src.auth.dependencies import get_current_active_user
 
@@ -14,8 +14,8 @@ router = APIRouter()
 
 
 @router.get("/users/", tags=["users"])
-async def read_users():
-    return [{"username": "Rick"}, {"username": "Morty"}]
+async def read_users(db: Session = Depends(_global_dependencies.get_db)):
+    return get_all_users(db=db)
 
 
 @router.get("/users/me", tags=["users"])
