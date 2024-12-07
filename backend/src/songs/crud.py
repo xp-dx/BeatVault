@@ -1,3 +1,5 @@
+from fastapi import UploadFile
+
 from sqlalchemy.orm import Session
 
 from src.auth import schemas as _user_schemas
@@ -7,12 +9,19 @@ from . import schemas as _schemas
 from .. import models as _global_models
 
 
-def upload_song(db: Session, user: _user_schemas.UserId, song: _schemas.SongUpload):
+async def upload_song(
+    db: Session,
+    user: _user_schemas.UserId,
+    song: _schemas.SongUpload,
+    file: UploadFile,
+):
+    file_data = await file.read()
     db_song = _global_models.Song(
         title=song.title,
         artist=song.artist,
         genre=song.genre,
         lyrics=song.lyrics,
+        file=file_data,
         album_id=song.album_id,
     )
     db.add(db_song)

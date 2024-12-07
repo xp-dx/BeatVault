@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, LargeBinary
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -77,6 +77,8 @@ class Song(Base):
     genre = Column(String, index=True)
     # year = Column(Integer, index=True)
     lyrics = Column(Text, index=True)
+    file = Column(LargeBinary)
+
     album_id = Column(
         Integer, ForeignKey("albums.id"), nullable=True
     )  # One-to-Many ( One album )

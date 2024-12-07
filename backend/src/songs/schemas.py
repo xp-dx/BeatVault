@@ -9,5 +9,4 @@ class SongBase(BaseModel):
 class SongUpload(SongBase):
     genre: str
     lyrics: str
-
     album_id: int | None = None
