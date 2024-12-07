@@ -19,8 +19,8 @@ def upload_song(db: Session, user: _user_schemas.UserId, song: _schemas.SongUplo
     db.commit()
     db.refresh(db_song)
 
-    db_artist_song = _global_models.ArtistSong(artist_id=user.id, song_id=db_song.id)
-    db.add(db_artist_song)
+    db_user_song = _global_models.UserSong(user_id=user.id, song_id=db_song.id)
+    db.add(db_user_song)
     db.commit()
 
     return {

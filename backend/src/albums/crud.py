@@ -19,10 +19,8 @@ def create_album(db: Session, user: _user_schemas.UserId, album: _schemas.Album)
     # db.execute(stmt)
     # db.commit()
 
-    db_artist_album = _global_models.ArtistAlbum(
-        artist_id=user.id, album_id=db_album.id
-    )
-    db.add(db_artist_album)
+    db_user_album = _global_models.UserAlbum(user_id=user.id, album_id=db_album.id)
+    db.add(db_user_album)
     db.commit()
 
     return {

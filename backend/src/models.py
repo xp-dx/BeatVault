@@ -13,10 +13,10 @@ from .database import Base
 
 
 # Many-to-Many ( artist_album )
-class ArtistAlbum(Base):
+class UserAlbum(Base):
     __tablename__ = "artist_album"
 
-    artist_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     album_id = Column(Integer, ForeignKey("albums.id"), primary_key=True)
 
     # Опционально: вы можете добавить отношения, если хотите
@@ -34,10 +34,10 @@ class ArtistAlbum(Base):
 
 
 # Many-to-Many ( artist_song )
-class ArtistSong(Base):
+class UserSong(Base):
     __tablename__ = "artist_song"
 
-    artist_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     song_id = Column(Integer, ForeignKey("songs.id"), primary_key=True)
 
 
