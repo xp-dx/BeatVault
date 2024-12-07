@@ -11,6 +11,8 @@ from sqlalchemy import (
     DateTime,
     Numeric,
 )
+
+# from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, LargeBinary
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -89,6 +91,7 @@ class Song(Base):
     genre = Column(String, index=True)
     # year = Column(Integer, index=True)
     lyrics = Column(Text, index=True)
+    price = Column(Numeric(10, 2), nullable=False)
     file = Column(LargeBinary)
 
     album_id = Column(

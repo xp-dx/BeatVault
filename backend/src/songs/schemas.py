@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from decimal import Decimal
 
 
 class SongID(BaseModel):
@@ -8,6 +9,7 @@ class SongID(BaseModel):
 class SongBase(BaseModel):
     title: str
     artist: str
+    price: Decimal
 
 
 class SongUpload(SongBase):

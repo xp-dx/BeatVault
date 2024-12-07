@@ -17,7 +17,7 @@ async def create_checkout_session(price: int = 10):
         line_items=[
             {
                 "price_data": {
-                    "currency": "usd",
+                    "currency": "rub",
                     "product_data": {
                         "name": "FastAPI Stripe Checkout",
                     },
