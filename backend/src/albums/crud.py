@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from . import schemas as _schemas
 
 from .. import models as _global_models
-from src.auth.dependencies import get_current_active_user
+
 from src.auth import schemas as _user_schemas
 
 
@@ -25,4 +25,8 @@ def create_album(db: Session, user: _user_schemas.UserId, album: _schemas.Album)
     db.add(db_artist_album)
     db.commit()
 
-    return db_album
+    return {
+        "id": db_album.id,
+        "title": db_album.title,
+        "description": db_album.description,
+    }

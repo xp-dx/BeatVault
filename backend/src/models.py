@@ -24,13 +24,21 @@ class ArtistAlbum(Base):
     # album = relationship("Album", back_populates="artists")
 
 
+# # Many-to-Many ( artist_song )
+# artist_song = Table(
+#     "artist_song",
+#     Base.metadata,
+#     Column("artist_id", Integer(), ForeignKey("users.id")),
+#     Column("song_id", Integer(), ForeignKey("songs.id")),
+# )
+
+
 # Many-to-Many ( artist_song )
-artist_song = Table(
-    "artist_song",
-    Base.metadata,
-    Column("artist_id", Integer(), ForeignKey("users.id")),
-    Column("song_id", Integer(), ForeignKey("songs.id")),
-)
+class ArtistSong(Base):
+    __tablename__ = "artist_song"
+
+    artist_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    song_id = Column(Integer, ForeignKey("songs.id"), primary_key=True)
 
 
 # Users
