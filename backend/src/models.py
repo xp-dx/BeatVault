@@ -14,7 +14,7 @@ from .database import Base
 
 # Many-to-Many ( artist_album )
 class UserAlbum(Base):
-    __tablename__ = "artist_album"
+    __tablename__ = "user_album"
 
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     album_id = Column(Integer, ForeignKey("albums.id"), primary_key=True)
@@ -35,7 +35,7 @@ class UserAlbum(Base):
 
 # Many-to-Many ( artist_song )
 class UserSong(Base):
-    __tablename__ = "artist_song"
+    __tablename__ = "user_song"
 
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     song_id = Column(Integer, ForeignKey("songs.id"), primary_key=True)
