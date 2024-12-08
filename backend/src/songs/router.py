@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from typing import Annotated
 
 from src.auth import dependencies as _auth_dependencies, schemas as _auth_schemas
+from src.payments import service as _payment_service
 
 from . import schemas as _schemas, crud as _crud
 
@@ -40,7 +41,11 @@ async def upload_song(
 
 @router.get("/download-song/{song_id}")
 async def download_song(
-    song_id: int, db: Session = Depends(_global_dependencies.get_db)
+    current_user: Annotated[
+        _auth_schemas.UserId, Depends(_auth_dependencies.get_current_active_user)
+    ],
+    song_id: int,
+    db: Session = Depends(_global_dependencies.get_db),
 ):
     try:
         song = (
@@ -50,7 +55,10 @@ async def download_song(
         )
     except NoResultFound:
         raise HTTPException(status_code=404, detail="Song not found")
-
+    if not _payment_service.access_to_song(
+        db=db, user_id=current_user.id, song_id=song_id
+    ):
+        raise HTTPException(status_code=403, detail="Access denied. Payment required.")
     return Response(
         content=song.file,
         media_type="audio/mpeg",

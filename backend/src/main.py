@@ -3,10 +3,11 @@ from fastapi import FastAPI
 from .auth import router as auth_router
 from .songs import router as songs_router
 from .albums import router as albums_router
+from .payments import router as payment_router
 from .routers import users
 
-
 from . import services as _services
+
 
 app = FastAPI(
     title="BeatVault",
@@ -20,3 +21,4 @@ app.include_router(auth_router.router)
 app.include_router(users.router)
 app.include_router(songs_router.router)
 app.include_router(albums_router.router)
+app.include_router(payment_router.router)

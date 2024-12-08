@@ -1,5 +1,4 @@
 from fastapi import Depends, HTTPException, status
-
 from fastapi.security import OAuth2PasswordBearer
 
 from sqlalchemy.orm import Session
@@ -8,9 +7,8 @@ from typing import Annotated
 
 from passlib.context import CryptContext
 
-from jwt.exceptions import InvalidTokenError
-
 import jwt
+from jwt.exceptions import InvalidTokenError
 
 from . import config as _config, schemas as _schemas, service as _service
 

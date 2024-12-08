@@ -1,4 +1,16 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, LargeBinary
+from datetime import datetime
+
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    Boolean,
+    ForeignKey,
+    LargeBinary,
+    DateTime,
+    Numeric,
+)
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -82,3 +94,17 @@ class Song(Base):
     album_id = Column(
         Integer, ForeignKey("albums.id"), nullable=True
     )  # One-to-Many ( One album )
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    song_id = Column(Integer, ForeignKey("songs.id"), nullable=False)
+    amount = Column(Numeric(10, 2), nullable=False)
+    payment_date = Column(DateTime, default=datetime.now())
+    status = Column(String(20), nullable=False)
+
+    # user = relationship("User", back_populates="payments")
+    # song = relationship("Song", back_populates="payments")

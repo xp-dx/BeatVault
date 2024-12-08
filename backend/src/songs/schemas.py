@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 
 
+class SongID(BaseModel):
+    id: int
+
+
 class SongBase(BaseModel):
     title: str
     artist: str
