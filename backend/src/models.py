@@ -69,6 +69,8 @@ class User(Base):
     is_superuser = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
 
+    stripe_account_id = Column(String)
+
 
 # Albums
 class Album(Base):

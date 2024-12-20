@@ -11,6 +11,7 @@ def create_user(db: Session, user: _schemas.UserCreate):
         username=user.username,
         email=user.email,
         hashed_password=hashed_password,
+        stripe_account_id=user.stripe_account_id,
     )
     db.add(db_user)
     db.commit()

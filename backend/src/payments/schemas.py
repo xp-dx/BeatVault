@@ -6,9 +6,9 @@ from datetime import datetime
 
 
 class Payment(BaseModel):
-    id: int
+    # id: int
     user_id: int
     song_id: int
     amount: Decimal
-    payment_date: datetime
+    # payment_date: datetime
     status: str

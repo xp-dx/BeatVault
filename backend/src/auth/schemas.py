@@ -27,8 +27,8 @@ class UserEmail(User):
     email: EmailStr
 
 
-class UserCreate(UserEmail):
-    # email: EmailStr
-    # username: str
+class UserCreate(UserBase):
+    email: EmailStr
+    username: str
     password: str
-    # is_artist: bool
+    stripe_account_id: str
