@@ -80,6 +80,9 @@ def get_all_purchased_songs(user, db: Session):
                 "genre": song.genre,
             }
         )
+    if not songs_json:
+        return {"message": "You don't purchased any songs"}
+
     return json.loads(json.dumps(songs_json, default=str))
 
 
