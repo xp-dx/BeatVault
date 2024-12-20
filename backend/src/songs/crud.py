@@ -33,26 +33,27 @@ def get_all_uploaded_songs(user, db: Session):
         .filter(_global_models.UserSong.user_id == user.id)
         .all()
     )
-    try:
-        songs_json = []
-        for user_song in users_songs:
-            song = (
-                db.query(_global_models.Song)
-                .filter(_global_models.Song.id == user_song.song_id)
-                .first()
-            )
-            songs_json.append(
-                {
-                    "id": song.id,
-                    "title": song.title,
-                    "artist": song.artist,
-                    "genre": song.genre,
-                    "price": song.price,
-                }
-            )
-        return json.loads(json.dumps(songs_json, default=str))
-    except:
+
+    songs_json = []
+    for user_song in users_songs:
+        song = (
+            db.query(_global_models.Song)
+            .filter(_global_models.Song.id == user_song.song_id)
+            .first()
+        )
+        songs_json.append(
+            {
+                "id": song.id,
+                "title": song.title,
+                "artist": song.artist,
+                "genre": song.genre,
+                "price": song.price,
+            }
+        )
+    if not songs_json:
         return {"message": "You don't uploaded any songs"}
+
+    return json.loads(json.dumps(songs_json, default=str))
 
 
 def get_all_purchased_songs(user, db: Session):
