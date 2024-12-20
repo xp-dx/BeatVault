@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, Form, File, UploadFile, HTTPException, status
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from fastapi import APIRouter, Depends, Form, File, UploadFile, HTTPException
 from fastapi.responses import Response
 
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
+
+from io import BytesIO
 
 from typing import Annotated
 
@@ -16,7 +18,6 @@ from decimal import Decimal
 
 from . import schemas as _schemas, crud as _crud, service as _service
 
-from .. import dependencies as _global_dependencies, models as _global_models
 from .. import dependencies as _global_dependencies, models as _global_models
 
 router = APIRouter(tags=["songs"])
@@ -121,6 +122,27 @@ def get_purchased_songs(
     return _crud.get_all_uploaded_songs(user=current_user, db=db)
 
 
+@router.get("/play-song/{song_id}")
+async def play_song(
+    song_id: int,
+    db: Session = Depends(_global_dependencies.get_db),
+):
+    try:
+        song = (
+            db.query(_global_models.Song)
+            .filter(_global_models.Song.id == song_id)
+            .one()
+        )
+        file_stream = BytesIO(song.file)
+
+        return StreamingResponse(
+            file_stream,
+            media_type="audio/mpeg",
+        )
+    except NoResultFound:
+        raise HTTPException(status_code=404, detail="Song not found")
+
+
 @router.post("/upload-song")
 async def upload_song(
     current_user: Annotated[
@@ -144,3 +166,21 @@ async def upload_song(
         album_id=album_id,
     )
     return await _crud.upload_song(db=db, user=current_user, song=song, file=file)
+
+
+# @router.patch("/update-song/{song_id}")
+# async def update_song(
+#     current_user: Annotated[
+#         _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
+#     ],
+#     # file: Annotated[UploadFile, File()],
+#     title: Annotated[str, Form()],
+#     artist: Annotated[str, Form()],
+#     genre: Annotated[str, Form()],
+#     price: Annotated[Decimal, Form()],
+#     lyrics: Annotated[str | None, Form()] = None,
+#     album_id: Annotated[int | None, Form()] = None,
+#     db: Session = Depends(_global_dependencies.get_db),
+# ):
+#     song =
+#     return await _crud.

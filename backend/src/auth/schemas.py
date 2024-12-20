@@ -23,8 +23,12 @@ class User(UserBase):
     is_active: bool = True
 
 
-class UserCreate(UserBase):
+class UserEmail(User):
     email: EmailStr
+
+
+class UserCreate(UserEmail):
+    # email: EmailStr
     # username: str
     password: str
     # is_artist: bool
