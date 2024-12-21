@@ -1,4 +1,6 @@
-# Environments 
+# Byte-compiled files
 __pycache__
+
+# Environments 
 .venv
 .env
