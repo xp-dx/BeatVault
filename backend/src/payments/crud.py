@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from . import service as _service, schemas as _schemas
+from . import schemas as _schemas
 
 from .. import models as _global_models
 
