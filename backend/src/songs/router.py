@@ -12,7 +12,6 @@ from io import BytesIO
 from typing import Annotated
 
 from src.auth import dependencies as _auth_dependencies, schemas as _auth_schemas
-from src.payments import service as _payment_service
 
 from decimal import Decimal
 
