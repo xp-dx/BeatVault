@@ -1,10 +1,14 @@
+from fastapi import UploadFile
+
 from sqlalchemy.orm import Session
 
 import json
 
+import base64
+
 from src.auth import schemas as _user_schemas
 
-from . import schemas as _schemas
+from . import schemas as _schemas, constants as _constants
 
 from .. import models as _global_models
 
@@ -62,8 +66,22 @@ def read_album_songs(db: Session, album_id: int):
     return json.loads(json.dumps(album_songs_json, default=str))
 
 
-def create_album(db: Session, user: _user_schemas.UserId, album: _schemas.Album):
-    db_album = _global_models.Album(title=album.title, description=album.description)
+async def create_album(
+    db: Session,
+    user: _user_schemas.UserId,
+    album: _schemas.Album,
+    cover: UploadFile | None,
+):
+    if cover:
+        cover_data = await cover.read()
+    else:
+        cover_data = _constants.DEFAULT_COVER
+
+    db_album = _global_models.Album(
+        title=album.title,
+        description=album.description,
+        cover=cover_data,
+    )
     db.add(db_album)
     db.commit()
     db.refresh(db_album)
@@ -82,4 +100,5 @@ def create_album(db: Session, user: _user_schemas.UserId, album: _schemas.Album)
         "id": db_album.id,
         "title": db_album.title,
         "description": db_album.description,
+        "cover": base64.b64encode(db_album.cover).decode("ascii"),
     }

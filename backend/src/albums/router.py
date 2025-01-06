@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Form
+from fastapi import APIRouter, Depends, Form, File, UploadFile
 
 from sqlalchemy.orm import Session
 
@@ -29,11 +29,18 @@ def read_album(album_id: int, db: Session = Depends(_global_dependencies.get_db)
 
 
 @router.post("/create-album")
-def create_album(
+async def create_album(
     current_user: Annotated[
         _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
     ],
-    album: Annotated[_schemas.Album, Form()],
+    cover: Annotated[UploadFile, File()],
+    # album: Annotated[_schemas.Album, Form()],
+    title: Annotated[str, Form()],
+    description: Annotated[str, Form()],
     db: Session = Depends(_global_dependencies.get_db),
 ):
-    return _crud.create_album(db=db, user=current_user, album=album)
+    album = _schemas.Album(
+        title=title,
+        description=description,
+    )
+    return await _crud.create_album(db=db, user=current_user, album=album, cover=cover)

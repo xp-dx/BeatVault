@@ -1,6 +1,8 @@
 # def upload_mp3_file()
 from sqlalchemy.orm import Session
 
+from random import shuffle
+
 from .. import models as _global_models
 
 
@@ -19,3 +21,6 @@ def check_access_to_song(user, song, db: Session):
         ).first()
     ):
         return True
+
+
+# def shuffle_songs()

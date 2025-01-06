@@ -29,6 +29,5 @@ class UserEmail(User):
 
 class UserCreate(UserBase):
     email: EmailStr
-    username: str
     password: str
     stripe_account_id: str

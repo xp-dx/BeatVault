@@ -15,6 +15,8 @@ from src.auth import dependencies as _auth_dependencies, schemas as _auth_schema
 
 from decimal import Decimal
 
+from random import shuffle
+
 from . import schemas as _schemas, crud as _crud, service as _service
 
 from .. import dependencies as _global_dependencies, models as _global_models
@@ -26,7 +28,9 @@ router = APIRouter(tags=["songs"])
 def read_songs(
     db: Session = Depends(_global_dependencies.get_db),
 ):
-    return _crud.get_all_songs(db=db)
+    songs = _crud.get_all_songs(db=db)
+    shuffle(songs)
+    return songs
 
 
 # @router.get("/download-song/{song_id}")
@@ -153,6 +157,7 @@ async def upload_song(
     genre: Annotated[str, Form()],
     price: Annotated[Decimal, Form()],
     lyrics: Annotated[str | None, Form()] = None,
+    cover: Annotated[UploadFile | None, File()] = None,
     album_id: Annotated[int | None, Form()] = None,
     db: Session = Depends(_global_dependencies.get_db),
 ):
@@ -164,7 +169,21 @@ async def upload_song(
         price=price,
         album_id=album_id,
     )
-    return await _crud.upload_song(db=db, user=current_user, song=song, file=file)
+    return await _crud.upload_song(
+        db=db, user=current_user, song=song, file=file, cover=cover
+    )
+
+
+from fastapi.responses import FileResponse
+from . import constants as _constants
+
+
+@router.get("/image")
+async def get_image():
+    # Обернем байты в BytesIO
+    image_stream = BytesIO(_constants.DEFAULT_COVER)
+    # Вернем изображение как StreamingResponse
+    return StreamingResponse(image_stream, media_type="image/jpeg")
 
 
 # @router.patch("/update-song/{song_id}")

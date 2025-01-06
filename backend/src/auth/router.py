@@ -1,7 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+    Request,
+    Form,
+    UploadFile,
+    File,
+)
 from fastapi.security import OAuth2PasswordRequestForm
 
 from sqlalchemy.orm import Session
+
+from pydantic import EmailStr
 
 from typing import Annotated
 
@@ -21,15 +32,27 @@ def registration(request: Request):
 
 
 @router.post("/registration")
-def registration(
-    new_user_form: Annotated[_schemas.UserCreate, Form()], db: Session = Depends(get_db)
+async def registration(
+    # new_user_form: Annotated[_schemas.UserCreate, Form()],
+    username: Annotated[str, Form()],
+    email: Annotated[EmailStr, Form()],
+    password: Annotated[str, Form()],
+    stripe_account_id: Annotated[str, Form()],
+    avatar: Annotated[UploadFile | None, File()] = None,
+    db: Session = Depends(get_db),
 ):
-    db_user = _service.get_user_by_username(db, new_user_form.username)
+    new_user = _schemas.UserCreate(
+        username=username,
+        email=email,
+        password=password,
+        stripe_account_id=stripe_account_id,
+    )
+    db_user = _service.get_user_by_username(db, new_user.username)
     if db_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="User already exists"
         )
-    return _crud.create_user(db=db, user=new_user_form)
+    return await _crud.create_user(db=db, user=new_user, avatar=avatar)
 
 
 @router.post("/login")

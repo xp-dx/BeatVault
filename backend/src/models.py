@@ -63,6 +63,8 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
+    avatar = Column(LargeBinary, nullable=True)
+    default_avatar = Column(LargeBinary)
 
     # is_artist = Column(Boolean, default=False)
     is_verified = Column(Boolean, default=False)
@@ -79,6 +81,9 @@ class Album(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     description = Column(Text, index=True, nullable=True)
+    cover = Column(LargeBinary, nullable=True)
+    default_cover = Column(LargeBinary)
+
     songs = relationship("Song")  # One-to-Many ( Many songs )
 
 
@@ -89,12 +94,12 @@ class Song(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     artist = Column(String, index=True)
-    # album = Column(String, index=True)
     genre = Column(String, index=True)
-    # year = Column(Integer, index=True)
     lyrics = Column(Text, index=True)
     price = Column(Numeric(10, 2), nullable=False)
     file = Column(LargeBinary)
+    cover = Column(LargeBinary, nullable=True)
+    default_cover = Column(LargeBinary)
 
     album_id = Column(
         Integer, ForeignKey("albums.id"), nullable=True
