@@ -174,18 +174,6 @@ async def upload_song(
     )
 
 
-from fastapi.responses import FileResponse
-from . import constants as _constants
-
-
-@router.get("/image")
-async def get_image():
-    # Обернем байты в BytesIO
-    image_stream = BytesIO(_constants.DEFAULT_COVER)
-    # Вернем изображение как StreamingResponse
-    return StreamingResponse(image_stream, media_type="image/jpeg")
-
-
 # @router.patch("/update-song/{song_id}")
 # async def update_song(
 #     current_user: Annotated[
