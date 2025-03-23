@@ -27,3 +27,11 @@ async def create_user(
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def update_verified_status(db: Session, email: str):
+    db.query(_global_models.User).filter(_global_models.User.email == email).update(
+        {"is_verified": True}
+    )
+    db.commit()
+    return

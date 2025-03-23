@@ -1,14 +1,22 @@
 from datetime import datetime, timedelta, timezone
 
+from fastapi import HTTPException
+from jose import JWTError
 from sqlalchemy.orm import Session
+
+from celery import Celery
 
 import jwt
 
 import json
 
-from . import config as _config, dependencies as _dependencies
+import redis
 
-from .. import models as _global_models
+import aiosmtplib
+
+from . import config as _config, dependencies as _dependencies, crud as _crud
+
+from .. import models as _global_models, config as _global_config
 
 
 def get_password_hash(password):
@@ -53,3 +61,23 @@ def get_all_users(db: Session):
     for user in users:
         users_json.append({"id": user[0], "username": user[1]})
     return json.loads(json.dumps(users_json, default=str))
+
+
+async def confirm_email(token: str, db: Session):
+    payload = jwt.decode(
+        token, _global_config.JWT_SECRET_KEY, algorithms=[_global_config.JWT_ALGORITHM]
+    )
+    email: str = payload.get("sub")
+    if email is None:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    _crud.update_verified_status(db, email)
+    return {"message": "Email confirmed", "email": email}
+
+
+def is_verified(email: str, db: Session):
+    user = (
+        db.query(_global_models.User).filter(_global_models.User.email == email).first()
+    )
+    if user.is_verified:
+        return True
+    return False

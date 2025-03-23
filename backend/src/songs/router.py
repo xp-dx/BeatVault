@@ -1,4 +1,13 @@
-from fastapi import APIRouter, Depends, Form, File, UploadFile, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    Form,
+    File,
+    Query,
+    UploadFile,
+    HTTPException,
+    status,
+)
 from fastapi.responses import Response, StreamingResponse
 from fastapi import APIRouter, Depends, Form, File, UploadFile, HTTPException
 from fastapi.responses import Response
@@ -24,12 +33,22 @@ from .. import dependencies as _global_dependencies, models as _global_models
 router = APIRouter(tags=["songs"])
 
 
-@router.get("/songs")
-def read_songs(
+# @router.get("/songs")
+# def read_songs(
+#     db: Session = Depends(_global_dependencies.get_db),
+# ):
+#     songs = _crud.get_all_songs(db=db)
+#     shuffle(songs)
+#     return songs
+
+
+@router.get("/songs/")
+def get_songs(
+    offset: int = Query(0, alias="offset", ge=0),
+    limit: int = Query(50, alias="limit", le=100),
     db: Session = Depends(_global_dependencies.get_db),
 ):
-    songs = _crud.get_all_songs(db=db)
-    shuffle(songs)
+    songs = _crud.get_part_songs(offset=offset, limit=limit, db=db)
     return songs
 
 

@@ -45,8 +45,23 @@ def get_current_user(
 
 
 def get_current_active_user(
-    current_user: Annotated[_schemas.User, Depends(get_current_user)]
+    current_user: Annotated[_schemas.User, Depends(get_current_user)],
 ):
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+
+async def confirm_email(token: str):
+    try:
+        payload = jwt.decode(token, _config.SECRET_KEY, algorithms=[_config.ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=400, detail="Invalid token")
+        # Активируйте пользователя в базе данных
+        # user.is_active = True
+        return {"message": "Email confirmed"}
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=400, detail="Token expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=400, detail="Invalid token")

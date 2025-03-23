@@ -8,6 +8,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: str | None = None
+    # email: EmailStr | None = None
 
 
 class UserId(BaseModel):

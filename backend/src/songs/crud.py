@@ -31,6 +31,49 @@ def get_all_songs(db: Session):
     return json.loads(json.dumps(songs_json, default=str))
 
 
+def get_part_songs(offset: int, limit: int, db: Session):
+    songs = db.query(_global_models.Song).offset(offset).limit(limit).all()
+    songs_json = []
+    for song in songs:
+        songs_json.append(
+            {
+                "id": song.id,
+                "title": song.title,
+                "artist": song.artist,
+                "genre": song.genre,
+                "price": song.price,
+                "cover": base64.b64encode(song.cover).decode("utf-8"),
+            }
+        )
+    return json.loads(json.dumps(songs_json, default=str))
+
+
+# import base64
+
+
+# def get_part_songs(offset: int, limit: int, db: Session):
+#     songs = db.query(_global_models.Song).offset(offset).limit(limit).all()
+#     songs_json = []
+
+#     for song in songs:
+#         cover_base64 = None
+#         if song.cover:  # Проверяем, есть ли изображение
+#             cover_base64 = base64.b64encode(song.cover).decode("utf-8")
+
+#         songs_json.append(
+#             {
+#                 "id": song.id,
+#                 "title": song.title,
+#                 "artist": song.artist,
+#                 "genre": song.genre,
+#                 "price": song.price,
+#                 "cover": cover_base64,
+#             }
+#         )
+
+#     return songs_json  # JSON-формат
+
+
 def get_all_uploaded_songs(user, db: Session):
     try:
         users_songs = (
@@ -104,7 +147,11 @@ async def upload_song(
 ):
     # try:
     file_data = await file.read()
-    cover_data = await cover.read() if cover else _constants.DEFAULT_COVER
+    cover_data = (
+        await base64.b64encode(cover.read()).decode("utf-8")
+        if cover
+        else _constants.DEFAULT_COVER
+    )
     # if cover:
     #     cover_data = await cover.read()
     # else:
