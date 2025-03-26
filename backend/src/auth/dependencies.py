@@ -1,3 +1,4 @@
+import base64
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
@@ -39,6 +40,18 @@ def get_current_user(
     except InvalidTokenError:
         raise credentials_exception
     user = _service.get_user_by_username(db, username=token_data.username)
+    # user_json = [
+    #     {
+    #         "id": user.id,
+    #         "username": user.username,
+    #         "email": user.email,
+    #         "avatar": base64.b64encode(user.avatar).decode("utf-8"),
+    #         "is_verified": user.is_verified,
+    #         "is_active": user.is_active,
+    #         "is_verified": user.is_verified,
+    #     }
+    # ]
+
     if user is None:
         raise credentials_exception
     return user

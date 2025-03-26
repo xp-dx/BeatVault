@@ -55,6 +55,12 @@ def get_user_by_username(db: Session, username: str):
     )
 
 
+def get_user_by_email(db: Session, email: str):
+    return (
+        db.query(_global_models.User).filter(_global_models.User.email == email).first()
+    )
+
+
 def get_all_users(db: Session):
     users = db.query(_global_models.User.id, _global_models.User.username).all()
     users_json = []

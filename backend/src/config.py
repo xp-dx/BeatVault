@@ -14,6 +14,7 @@ DB_PORT = os.getenv("DB_PORT")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # Redis
+REDIS_URL = os.getenv("REDIS_URL")
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 

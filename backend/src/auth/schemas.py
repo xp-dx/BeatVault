@@ -8,7 +8,6 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: str | None = None
-    # email: EmailStr | None = None
 
 
 class UserId(BaseModel):
@@ -32,3 +31,18 @@ class UserCreate(UserBase):
     email: EmailStr
     password: str
     stripe_account_id: str
+
+
+class UserMe(UserEmail):
+    avatar: bytes
+    default_avatar: bytes
+    is_verified: bool = False
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str

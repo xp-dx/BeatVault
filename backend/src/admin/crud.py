@@ -15,6 +15,12 @@ def delete_user(user_email: EmailStr, db: Session):
     return True
 
 
+def delete_song(song_id: int, db: Session):
+    db.query(_global_models.Song).filter(_global_models.Song.id == song_id).delete()
+    db.commit()
+    return True
+
+
 def check_role(current_user: _auth_schemas.UserEmail, db: Session):
     user = (
         db.query(_global_models.User)

@@ -1,3 +1,4 @@
+import secrets
 from fastapi import (
     APIRouter,
     Depends,
@@ -21,9 +22,7 @@ from datetime import timedelta
 
 import aiosmtplib
 
-from src.celery import utils as _celery_utils
-from src.celery import tasks as _celery_tasks
-
+from src.celery import utils as _celery_utils, tasks as _celery_tasks, redis as _redis
 
 from . import (
     schemas as _schemas,
@@ -37,11 +36,6 @@ from .. import dependencies as _global_dependencies
 
 
 router = APIRouter(tags=["auth"])
-
-
-@router.get("/registration")
-def registration(request: Request):
-    return "asd"
 
 
 @router.post("/registration")
@@ -68,6 +62,11 @@ async def registration(
     return await _crud.create_user(db=db, user=new_user, avatar=avatar)
 
 
+@router.get("/registration")
+def registration(request: Request):
+    return "asd"
+
+
 @router.post("/login")
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
@@ -78,7 +77,7 @@ async def login_for_access_token(
     )
     if not user:
         raise HTTPException(
-            status=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
@@ -92,6 +91,91 @@ async def login_for_access_token(
 @router.get("/login")
 def login(request: Request):
     return "asd"
+
+
+# @router.post("/request-password-reset")
+# async def request_password_reset(
+#     email: str,
+#     db: Session = Depends(_global_dependencies.get_db),
+# ):
+#     user = _service.get_user_by_email(db, email)
+#     if not user:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="User with this email not found",
+#         )
+
+#     # Отправляем код через Celery
+#     await _celery_tasks.send_password_reset_code_async(email)
+
+#     return {"message": "Password reset code sent to your email"}
+
+
+@router.post("/request-password-reset")
+async def request_password_reset(
+    email: str,
+    db: Session = Depends(_global_dependencies.get_db),
+):
+    user = _service.get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User with this email not found",
+        )
+
+    # Генерируем уникальный токен (32 символа)
+    reset_token = secrets.token_urlsafe(32)
+
+    # Сохраняем в Redis: токен → email (TTL 15 минут)
+    await _redis.redis_client.setex(
+        f"password_reset:{reset_token}", 900, email  # 15 минут
+    )
+
+    # Отправляем письмо с ссылкой, содержащей токен
+    reset_url = f"http://127.0.0.1:8000/reset-password?token={reset_token}"
+    await _celery_tasks.send_password_reset_email_async(email, reset_url)
+
+    return {"message": "Password reset link sent to your email"}
+
+
+@router.post("/reset-password")
+async def reset_password(
+    token: str,
+    new_password: Annotated[str, Form()],
+    db: Session = Depends(_global_dependencies.get_db),
+):
+    # Достаём email из Redis по токену
+    email_bytes = await _redis.redis_client.get(f"password_reset:{token}")
+    if not email_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired token",
+        )
+    email = (
+        email_bytes.decode("utf-8") if isinstance(email_bytes, bytes) else email_bytes
+    )
+
+    # Меняем пароль
+    await _crud.change_password(email, new_password, db=db)
+
+    # Удаляем токен из Redis (одноразовый)
+    await _redis.redis_client.delete(f"password_reset:{token}")
+
+    return {"message": "Password successfully changed"}
+
+
+# @router.put("/change-password")
+# async def change_password(
+#     current_user: Annotated[
+#         _schemas.UserEmail, Depends(_dependencies.get_current_active_user)
+#     ],
+#     new_password: Annotated[str, Form()],
+#     db: Session = Depends(_global_dependencies.get_db),
+# ):
+
+#     return await _crud.change_password(
+#         db=db, user=current_user, new_password=new_password
+#     )
 
 
 @router.post("/confirm-email")
