@@ -93,7 +93,7 @@ def login(request: Request):
     return "asd"
 
 
-@router.post("/request-password-reset")
+@router.post("/request-password-reset", tags=["users"])
 async def request_password_reset(
     email: str,
     db: Session = Depends(_global_dependencies.get_db),
@@ -117,7 +117,7 @@ async def request_password_reset(
     return {"message": "Password reset link sent to your email"}
 
 
-@router.post("/reset-password")
+@router.post("/reset-password", tags=["users"])
 async def reset_password(
     token: str,
     new_password: Annotated[str, Form()],
@@ -140,7 +140,7 @@ async def reset_password(
     return {"message": "Password successfully changed"}
 
 
-@router.post("/confirm-email")
+@router.post("/confirm-email", tags=["users"])
 async def confirm_email(
     current_user: Annotated[
         _schemas.UserEmail, Depends(_dependencies.get_current_active_user)
@@ -158,7 +158,7 @@ async def confirm_email(
     return {"message": "Email already confirmed", "email": email}
 
 
-@router.get("/confirm-email")
+@router.get("/confirm-email", tags=["users"])
 async def confirm_email(token: str, db: Session = Depends(_global_dependencies.get_db)):
     try:
         return await _service.confirm_email(token, db)
@@ -168,14 +168,14 @@ async def confirm_email(token: str, db: Session = Depends(_global_dependencies.g
         raise HTTPException(status_code=400, detail="Invalid token")
 
 
-@router.post("/send-confirmation")
+@router.post("/send-confirmation", tags=["users"])
 async def send_confirmation_sms(phone: str):
     """Запускает отправку SMS с кодом подтверждения"""
     task = await _celery_tasks.send_phone_confirmation_sms_async(phone)
     return {"message": "SMS отправляется", "task_id": task.id}
 
 
-@router.post("/verify")
+@router.post("/verify", tags=["users"])
 async def verify_sms(phone: str, code: str):
     """Проверяет код подтверждения из SMS"""
     is_valid = await verify_sms_code(phone, code)

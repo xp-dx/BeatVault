@@ -198,7 +198,8 @@ async def update_song(
     current_user: Annotated[
         _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
     ],
-    # file: Annotated[UploadFile, File()],
+    song_id: int,
+    file: Annotated[UploadFile, File()],
     title: Annotated[str, Form()],
     artist: Annotated[str, Form()],
     genre: Annotated[str, Form()],
@@ -207,9 +208,16 @@ async def update_song(
     album_id: Annotated[int | None, Form()] = None,
     db: Session = Depends(_global_dependencies.get_db),
 ):
-    # song =
+    song = _schemas.SongUpload(
+        title=title,
+        artist=artist,
+        genre=genre,
+        lyrics=lyrics,
+        price=price,
+        album_id=album_id,
+    )
     # return await _crud.
-    return
+    return _crud.update_song(song_id=song_id, updated_song=song, db=db)
 
 
 @router.delete("/delete-song/{song_id}")

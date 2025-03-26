@@ -20,3 +20,14 @@ def delete_user(current_user: _auth_schemas.User, db: Session):
     ).delete()
     db.commit()
     return True
+
+
+def update_username(current_user: _auth_schemas.User, new_username: str, db: Session):
+    user = (
+        db.query(_global_models.User)
+        .filter(_global_models.User.id == current_user.id)
+        .first()
+    )
+    user.username = new_username
+    db.commit()
+    return user.username

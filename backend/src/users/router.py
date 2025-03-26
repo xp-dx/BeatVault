@@ -50,3 +50,17 @@ def delete_user(
 ):
     _crud.delete_user(current_user=current_user, db=db)
     return {"message": "User deleted"}
+
+
+@router.patch("/user/change-username", tags=["users"])
+def update_username(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    new_username: str,
+    db: Session = Depends(_global_dependencies.get_db),
+):
+
+    return {
+        "message": f"Your new username: {_crud.update_username(
+            current_user=current_user, new_username=new_username, db=db
+        )}"
+    }
