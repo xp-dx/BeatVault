@@ -23,6 +23,7 @@ from datetime import timedelta
 import aiosmtplib
 
 from src.celery import utils as _celery_utils, tasks as _celery_tasks, redis as _redis
+from src.sms.service import verify_sms_code
 
 from . import (
     schemas as _schemas,
@@ -40,7 +41,6 @@ router = APIRouter(tags=["auth"])
 
 @router.post("/registration")
 async def registration(
-    # new_user_form: Annotated[_schemas.UserCreate, Form()],
     username: Annotated[str, Form()],
     email: Annotated[EmailStr, Form()],
     password: Annotated[str, Form()],
@@ -93,24 +93,6 @@ def login(request: Request):
     return "asd"
 
 
-# @router.post("/request-password-reset")
-# async def request_password_reset(
-#     email: str,
-#     db: Session = Depends(_global_dependencies.get_db),
-# ):
-#     user = _service.get_user_by_email(db, email)
-#     if not user:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="User with this email not found",
-#         )
-
-#     # Отправляем код через Celery
-#     await _celery_tasks.send_password_reset_code_async(email)
-
-#     return {"message": "Password reset code sent to your email"}
-
-
 @router.post("/request-password-reset")
 async def request_password_reset(
     email: str,
@@ -123,15 +105,12 @@ async def request_password_reset(
             detail="User with this email not found",
         )
 
-    # Генерируем уникальный токен (32 символа)
     reset_token = secrets.token_urlsafe(32)
 
-    # Сохраняем в Redis: токен → email (TTL 15 минут)
     await _redis.redis_client.setex(
         f"password_reset:{reset_token}", 900, email  # 15 минут
     )
 
-    # Отправляем письмо с ссылкой, содержащей токен
     reset_url = f"http://127.0.0.1:8000/reset-password?token={reset_token}"
     await _celery_tasks.send_password_reset_email_async(email, reset_url)
 
@@ -144,7 +123,6 @@ async def reset_password(
     new_password: Annotated[str, Form()],
     db: Session = Depends(_global_dependencies.get_db),
 ):
-    # Достаём email из Redis по токену
     email_bytes = await _redis.redis_client.get(f"password_reset:{token}")
     if not email_bytes:
         raise HTTPException(
@@ -155,27 +133,11 @@ async def reset_password(
         email_bytes.decode("utf-8") if isinstance(email_bytes, bytes) else email_bytes
     )
 
-    # Меняем пароль
     await _crud.change_password(email, new_password, db=db)
 
-    # Удаляем токен из Redis (одноразовый)
     await _redis.redis_client.delete(f"password_reset:{token}")
 
     return {"message": "Password successfully changed"}
-
-
-# @router.put("/change-password")
-# async def change_password(
-#     current_user: Annotated[
-#         _schemas.UserEmail, Depends(_dependencies.get_current_active_user)
-#     ],
-#     new_password: Annotated[str, Form()],
-#     db: Session = Depends(_global_dependencies.get_db),
-# ):
-
-#     return await _crud.change_password(
-#         db=db, user=current_user, new_password=new_password
-#     )
 
 
 @router.post("/confirm-email")
@@ -204,3 +166,38 @@ async def confirm_email(token: str, db: Session = Depends(_global_dependencies.g
         raise HTTPException(status_code=400, detail="Token expired")
     except JWTError:
         raise HTTPException(status_code=400, detail="Invalid token")
+
+
+@router.post("/send-confirmation")
+async def send_confirmation_sms(phone: str):
+    """Запускает отправку SMS с кодом подтверждения"""
+    task = await _celery_tasks.send_phone_confirmation_sms_async(phone)
+    return {"message": "SMS отправляется", "task_id": task.id}
+
+
+@router.post("/verify")
+async def verify_sms(phone: str, code: str):
+    """Проверяет код подтверждения из SMS"""
+    is_valid = await verify_sms_code(phone, code)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Неверный код подтверждения")
+    return {"message": "Телефон успешно подтвержден"}
+
+
+# @router.post("/send-code")
+# async def send_verification_code(phone: str):
+#     send_sms_code(phone)
+#     return {"message": "Код отправлен"}
+
+
+# @router.post("/verify-code")
+# async def verify_code(phone: str, user_code: str):
+#     """Проверяет введенный код."""
+#     stored_code = _redis.redis_client.get(f"phone_verify:{phone}")
+#     if not stored_code:
+#         raise HTTPException(status_code=400, detail="Код устарел или не существует")
+
+#     if stored_code.decode() != user_code:
+#         raise HTTPException(status_code=400, detail="Неверный код")
+
+#     return {"success": True, "message": "Номер подтвержден"}

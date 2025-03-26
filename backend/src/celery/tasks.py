@@ -2,7 +2,9 @@ from random import randint
 import aiosmtplib
 import asyncio
 
+
 from email.mime.text import MIMEText
+from src.sms import service as _sms_service
 from src.celery import celery_app
 from src.config import SMTP_HOST, SMTP_PASSWORD, SMTP_PORT, SMTP_USER
 
@@ -32,6 +34,28 @@ async def send_confirmation_email_async(to: str, confirmation_url: str):
     body = f"Для подтверждения регистрации перейдите по ссылке: {confirmation_url}"
     await send_email(to, subject, body)
     return f"Confirmation email sent to {to}"
+
+
+@celery_app.task
+async def send_phone_confirmation_sms_async(phone: str):
+    """Отправляет SMS с кодом подтверждения"""
+    code = await _sms_service.generate_and_store_code(phone)
+    message = f"Ваш код подтверждения: {code}"
+    await _sms_service.send_sms(phone, message)
+    return f"Confirmation SMS sent to {phone}"
+
+
+# @celery_app.task
+# async def send_phone_notification_sms_async(phone: str, message: str):
+#     """Отправляет произвольное SMS-уведомление"""
+#     await _sms_service.send_sms(phone, message)
+#     return f"Notification SMS sent to {phone}"
+
+
+# @celery_app.task
+# def send_sms_async(phone: str):
+#     _sms_service.send_sms_code(phone)
+#     return f"Code sent to {to}"
 
 
 # @celery_app.task
