@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 
 from typing import Annotated
 
-from .. import dependencies as _global_dependencies
+from . import crud as _crud
+from .. import dependencies as _global_dependencies, models as _global_models
 
 from src.auth.service import get_user_by_username, get_all_users
 from src.auth.schemas import UserMe, User
@@ -40,3 +41,12 @@ async def read_user(
 ) -> User:
     user = get_user_by_username(db=db, username=username)
     return user
+
+
+@router.delete("/user/delete-my-account", tags=["users"])
+def delete_user(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Session = Depends(_global_dependencies.get_db),
+):
+    _crud.delete_user(current_user=current_user, db=db)
+    return {"message": "User deleted"}

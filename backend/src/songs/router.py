@@ -193,19 +193,37 @@ async def upload_song(
     )
 
 
-# @router.patch("/update-song/{song_id}")
-# async def update_song(
-#     current_user: Annotated[
-#         _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
-#     ],
-#     # file: Annotated[UploadFile, File()],
-#     title: Annotated[str, Form()],
-#     artist: Annotated[str, Form()],
-#     genre: Annotated[str, Form()],
-#     price: Annotated[Decimal, Form()],
-#     lyrics: Annotated[str | None, Form()] = None,
-#     album_id: Annotated[int | None, Form()] = None,
-#     db: Session = Depends(_global_dependencies.get_db),
-# ):
-#     song =
-#     return await _crud.
+@router.patch("/update-song/{song_id}")
+async def update_song(
+    current_user: Annotated[
+        _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
+    ],
+    # file: Annotated[UploadFile, File()],
+    title: Annotated[str, Form()],
+    artist: Annotated[str, Form()],
+    genre: Annotated[str, Form()],
+    price: Annotated[Decimal, Form()],
+    lyrics: Annotated[str | None, Form()] = None,
+    album_id: Annotated[int | None, Form()] = None,
+    db: Session = Depends(_global_dependencies.get_db),
+):
+    # song =
+    # return await _crud.
+    return
+
+
+@router.delete("/delete-song/{song_id}")
+async def delete_song(
+    current_user: Annotated[
+        _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
+    ],
+    song_id: int,
+    db: Session = Depends(_global_dependencies.get_db),
+):
+    if _service.check_owner_of_song(user=current_user, song_id=song_id, db=db):
+        _crud.delete_song(song_id=song_id, db=db)
+        return {"message": "Song deleted"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access was forbidden"
+        )

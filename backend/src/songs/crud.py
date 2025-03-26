@@ -197,3 +197,12 @@ def update_song(song_id, updated_song, db: Session):
     db.refresh(db_updated_song)
     return db_updated_song
     # return {"message": "The song was uploaded successfully"}
+
+
+def delete_song(song_id, db: Session):
+    db.query(_global_models.UserSong).filter(
+        _global_models.UserSong.song_id == song_id
+    ).delete()
+    db.query(_global_models.Song).filter(_global_models.Song.id == song_id).delete()
+    db.commit()
+    return True

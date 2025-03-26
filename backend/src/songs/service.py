@@ -23,4 +23,17 @@ def check_access_to_song(user, song, db: Session):
         return True
 
 
+def check_owner_of_song(user, song_id, db: Session):
+    if (
+        db.query(_global_models.UserSong)
+        .filter(
+            _global_models.UserSong.user_id == user.id,
+            _global_models.UserSong.song_id == song_id,
+        )
+        .first()
+    ):
+        return True
+    return False
+
+
 # def shuffle_songs()
