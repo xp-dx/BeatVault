@@ -33,3 +33,11 @@ def check_role(current_user: _auth_schemas.UserEmail, db: Session):
     print("False")
 
     return False
+
+
+def deactivate_user(user_email: EmailStr, db: Session):
+    db.query(_global_models.User).filter(
+        _global_models.User.email == user_email
+    ).update({"is_active": False})
+    db.commit()
+    return True

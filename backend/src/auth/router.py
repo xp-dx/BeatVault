@@ -1,3 +1,4 @@
+import io
 import secrets
 from fastapi import (
     APIRouter,
@@ -9,6 +10,7 @@ from fastapi import (
     UploadFile,
     File,
 )
+from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
 from jose import JWTError, jwt
@@ -182,6 +184,40 @@ async def verify_sms(phone: str, code: str):
     if not is_valid:
         raise HTTPException(status_code=400, detail="Неверный код подтверждения")
     return {"message": "Телефон успешно подтвержден"}
+
+
+# @router.post("/auth-via-qr", tags=["users"])
+# async def auth_via_qr(token: str, db: Session = Depends(_global_dependencies.get_db)):
+#     return await _qr_service.authenticate_via_qr(token, db)
+
+
+# @router.get("/generate-qr")
+# async def generate_qr(user_id: str = None):
+#     """Генерирует QR-код для входа"""
+#     result = await _celery_tasks.generate_login_qr_task(user_id)
+#     return StreamingResponse(
+#         io.BytesIO(result["qr_image"]),
+#         media_type="image/png",
+#         headers={"X-QR-Token": result["token"]},
+#     )
+
+
+# @router.get("/check-qr-status/{token}")
+# async def check_qr_status(token: str):
+#     """Проверяет статус QR-аутентификации"""
+#     result = await _celery_tasks.verify_qr_token_task(token)
+#     if result["status"] == "invalid":
+#         raise HTTPException(status_code=404, detail="Token not found")
+#     return result
+
+
+# @router.post("/confirm-qr-login/{token}")
+# async def confirm_qr_login(token: str, user_id: str):
+#     """Подтверждает вход по QR-коду"""
+#     result = await _celery_tasks.authenticate_via_qr_task(token, user_id)
+#     if result["status"] == "error":
+#         raise HTTPException(status_code=400, detail="Invalid token")
+#     return result
 
 
 # @router.post("/send-code")

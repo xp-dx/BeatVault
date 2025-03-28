@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from fastapi import HTTPException, UploadFile
 
 from sqlalchemy import desc
@@ -190,13 +191,26 @@ async def upload_song(
     }
 
 
-def update_song(song_id, updated_song, db: Session):
-    db_updated_song = _global_models.Song(**updated_song)
-    db.add(db_updated_song)
-    db.commit()
-    db.refresh(db_updated_song)
-    return db_updated_song
-    # return {"message": "The song was uploaded successfully"}
+# def update_song(current_user, song_id: int, update_data: Dict[str, Any], db: Session):
+#     db_song = (
+#         db.query(_global_models.Song).filter(_global_models.Song.id == song_id).first()
+#     )
+#     if not db_song:
+#         HTTPException(status_code=404, detail="Song not found")
+
+#     for field, value in update_data.items():
+
+#         setattr(db_song, field, value)
+
+#     db.commit()
+#     db.refresh(db_song)
+
+# db_updated_song = _global_models.Song(**updated_song)
+# db.add(db_updated_song)
+# db.commit()
+# db.refresh(db_updated_song)
+# return db_song
+# return {"message": "The song was uploaded successfully"}
 
 
 def delete_song(song_id, db: Session):

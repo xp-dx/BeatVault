@@ -102,3 +102,6 @@ async def create_album(
         "description": db_album.description,
         "cover": base64.b64encode(db_album.cover).decode("ascii"),
     }
+
+
+# def delete_album()

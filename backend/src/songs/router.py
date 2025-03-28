@@ -1,3 +1,4 @@
+import base64
 from fastapi import (
     APIRouter,
     Depends,
@@ -135,7 +136,7 @@ def get_purchased_songs(
 
 
 @router.get("/uploaded-songs")
-def get_purchased_songs(
+def get_uploaded_songs(
     current_user: Annotated[
         _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
     ],
@@ -193,31 +194,33 @@ async def upload_song(
     )
 
 
-@router.patch("/update-song/{song_id}")
-async def update_song(
-    current_user: Annotated[
-        _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
-    ],
-    song_id: int,
-    file: Annotated[UploadFile, File()],
-    title: Annotated[str, Form()],
-    artist: Annotated[str, Form()],
-    genre: Annotated[str, Form()],
-    price: Annotated[Decimal, Form()],
-    lyrics: Annotated[str | None, Form()] = None,
-    album_id: Annotated[int | None, Form()] = None,
-    db: Session = Depends(_global_dependencies.get_db),
-):
-    song = _schemas.SongUpload(
-        title=title,
-        artist=artist,
-        genre=genre,
-        lyrics=lyrics,
-        price=price,
-        album_id=album_id,
-    )
-    # return await _crud.
-    return _crud.update_song(song_id=song_id, updated_song=song, db=db)
+# @router.patch("/update-song/{song_id}")
+# async def update_song(
+#     current_user: Annotated[
+#         _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
+#     ],
+#     song_id: int,
+#     file: Annotated[UploadFile | None, File()] = None,
+#     title: Annotated[str | None, Form()] = None,
+#     artist: Annotated[str | None, Form()] = None,
+#     genre: Annotated[str | None, Form()] = None,
+#     price: Annotated[Decimal | None, Form()] = None,
+#     lyrics: Annotated[str | None, Form()] = None,
+#     album_id: Annotated[int | None, Form()] = None,
+#     db: Session = Depends(_global_dependencies.get_db),
+# ):
+#     song = _schemas.SongUpdate(
+#         title=title,
+#         artist=artist,
+#         genre=genre,
+#         lyrics=lyrics,
+#         price=price,
+#         album_id=album_id,
+#         file=base64.b64encode(file.read()).decode("utf-8") if file else file,
+#     )
+#     update_data = song.model_dump(exclude_unset=True)
+#     # return await _crud.
+#     return str(_crud.update_song(song_id=song_id, update_data=update_data, db=db))
 
 
 @router.delete("/delete-song/{song_id}")
