@@ -56,4 +56,4 @@ def delete_album(
 ):
     if _crud.delete_album(current_user=current_user, album_id=album_id, db=db):
         return {"message": "Album deleted"}
-    raise HTTPException(status_code=403, detail="Firbidden")
+    raise HTTPException(status_code=403, detail="Forbidden")
