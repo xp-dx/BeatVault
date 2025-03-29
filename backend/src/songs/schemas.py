@@ -26,3 +26,4 @@ class SongUpdate(BaseModel):
     lyrics: str | None
     album_id: int | None
     file: bytes | None
+    cover: bytes | None

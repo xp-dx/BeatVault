@@ -38,7 +38,7 @@ from . import (
 from .. import dependencies as _global_dependencies
 
 
-router = APIRouter(tags=["auth"])
+router = APIRouter(tags=["auth"], prefix="/auth")
 
 
 @router.post("/registration")

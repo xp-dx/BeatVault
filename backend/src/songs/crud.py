@@ -191,26 +191,37 @@ async def upload_song(
     }
 
 
-# def update_song(current_user, song_id: int, update_data: Dict[str, Any], db: Session):
-#     db_song = (
-#         db.query(_global_models.Song).filter(_global_models.Song.id == song_id).first()
-#     )
-#     if not db_song:
-#         HTTPException(status_code=404, detail="Song not found")
+def update_song(song_id: int, update_data: Dict[str, Any], db: Session):
+    db_song = (
+        db.query(_global_models.Song).filter(_global_models.Song.id == song_id).first()
+    )
+    if not db_song:
+        HTTPException(status_code=404, detail="Song not found")
+    # if update_data["file"] is not None:
+    #     update_data["file"] = base64.b64decode(update_data["file"].read())
 
-#     for field, value in update_data.items():
+    for field, value in update_data.items():
+        setattr(db_song, field, value)
 
-#         setattr(db_song, field, value)
+    db.commit()
+    db.refresh(db_song)
 
-#     db.commit()
-#     db.refresh(db_song)
-
-# db_updated_song = _global_models.Song(**updated_song)
-# db.add(db_updated_song)
-# db.commit()
-# db.refresh(db_updated_song)
-# return db_song
-# return {"message": "The song was uploaded successfully"}
+    # db_updated_song = _global_models.Song(**updated_song)
+    # db.add(db_updated_song)
+    # db.commit()
+    # db.refresh(db_updated_song)
+    return {
+        "id": db_song.id,
+        "title": db_song.title,
+        "artist": db_song.artist,
+        "genre": db_song.genre,
+        "lyrics": db_song.lyrics,
+        "price": db_song.price,
+        "cover": base64.b64encode(db_song.cover).decode("ascii"),
+        "file": base64.b64encode(db_song.cover).decode("ascii"),
+        "album_id": db_song.album_id,
+    }
+    # return {"message": "The song was uploaded successfully"}
 
 
 def delete_song(song_id, db: Session):

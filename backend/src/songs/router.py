@@ -31,7 +31,7 @@ from . import schemas as _schemas, crud as _crud, service as _service
 
 from .. import dependencies as _global_dependencies, models as _global_models
 
-router = APIRouter(tags=["songs"])
+router = APIRouter(tags=["songs"], prefix="/songs")
 
 
 # @router.get("/songs")
@@ -43,7 +43,7 @@ router = APIRouter(tags=["songs"])
 #     return songs
 
 
-@router.get("/songs/")
+@router.get("/")
 def get_songs(
     offset: int = Query(0, alias="offset", ge=0),
     limit: int = Query(50, alias="limit", le=100),
@@ -194,33 +194,36 @@ async def upload_song(
     )
 
 
-# @router.patch("/update-song/{song_id}")
-# async def update_song(
-#     current_user: Annotated[
-#         _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
-#     ],
-#     song_id: int,
-#     file: Annotated[UploadFile | None, File()] = None,
-#     title: Annotated[str | None, Form()] = None,
-#     artist: Annotated[str | None, Form()] = None,
-#     genre: Annotated[str | None, Form()] = None,
-#     price: Annotated[Decimal | None, Form()] = None,
-#     lyrics: Annotated[str | None, Form()] = None,
-#     album_id: Annotated[int | None, Form()] = None,
-#     db: Session = Depends(_global_dependencies.get_db),
-# ):
-#     song = _schemas.SongUpdate(
-#         title=title,
-#         artist=artist,
-#         genre=genre,
-#         lyrics=lyrics,
-#         price=price,
-#         album_id=album_id,
-#         file=base64.b64encode(file.read()).decode("utf-8") if file else file,
-#     )
-#     update_data = song.model_dump(exclude_unset=True)
-#     # return await _crud.
-#     return str(_crud.update_song(song_id=song_id, update_data=update_data, db=db))
+@router.patch("/update-song/{song_id}")
+async def update_song(
+    # current_user: Annotated[
+    #     _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
+    # ],
+    song_id: int,
+    cover: Annotated[UploadFile | None, File()] = None,
+    file: Annotated[UploadFile | None, File()] = None,
+    title: Annotated[str | None, Form()] = None,
+    artist: Annotated[str | None, Form()] = None,
+    genre: Annotated[str | None, Form()] = None,
+    price: Annotated[Decimal | None, Form()] = None,
+    lyrics: Annotated[str | None, Form()] = None,
+    album_id: Annotated[int | None, Form()] = None,
+    db: Session = Depends(_global_dependencies.get_db),
+):
+    song = _schemas.SongUpdate(
+        title=title,
+        artist=artist,
+        genre=genre,
+        lyrics=lyrics,
+        price=price,
+        album_id=album_id,
+        file=file,
+        cover=cover,
+    )
+    update_data = song.model_dump(exclude_unset=True, exclude_none=True)
+    # return update_data
+    # return await _crud.
+    return _crud.update_song(song_id=song_id, update_data=update_data, db=db)
 
 
 @router.delete("/delete-song/{song_id}")

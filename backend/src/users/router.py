@@ -14,15 +14,15 @@ from src.auth.service import get_user_by_username, get_all_users
 from src.auth.schemas import UserMe, User
 from src.auth.dependencies import get_current_active_user
 
-router = APIRouter()
+router = APIRouter(tags=["users"], prefix="/users")
 
 
-@router.get("/users/", tags=["users"])
+@router.get("/")
 async def read_users(db: Session = Depends(_global_dependencies.get_db)):
     return get_all_users(db=db)
 
 
-@router.get("/users/me", tags=["users"])
+@router.get("/me")
 async def read_user_me(
     current_user: Annotated[UserMe, Depends(get_current_active_user)],
 ):
@@ -35,7 +35,7 @@ async def read_user_me(
     }
 
 
-@router.get("/users/{username}", tags=["users"])
+@router.get("/{username}")
 async def read_user(
     username: str, db: Session = Depends(_global_dependencies.get_db)
 ) -> User:
@@ -43,7 +43,7 @@ async def read_user(
     return user
 
 
-@router.delete("/user/delete-my-account", tags=["users"])
+@router.delete("/delete-my-account")
 def delete_user(
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Session = Depends(_global_dependencies.get_db),
@@ -52,7 +52,7 @@ def delete_user(
     return {"message": "User deleted"}
 
 
-@router.patch("/user/change-username", tags=["users"])
+@router.patch("/change-my-username")
 def update_username(
     current_user: Annotated[User, Depends(get_current_active_user)],
     new_username: str,

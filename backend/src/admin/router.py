@@ -11,10 +11,10 @@ from . import crud as _crud
 from .. import dependencies as _global_dependencies
 
 
-router = APIRouter(tags=["admin"])
+router = APIRouter(tags=["admin"], prefix="/admin")
 
 
-@router.delete("/admin/delete/user")
+@router.delete("/delete/user")
 def admin_delete_user(
     current_user: Annotated[
         _auth_schemas.UserEmail, Depends(_auth_dependencies.get_current_active_user)
@@ -28,7 +28,7 @@ def admin_delete_user(
         return {"message": f"User {email_user} deleted"}
 
 
-@router.delete("/admin/delete/song")
+@router.delete("/delete/song")
 def admin_delete_song(
     current_user: Annotated[
         _auth_schemas.UserEmail, Depends(_auth_dependencies.get_current_active_user)
@@ -42,7 +42,7 @@ def admin_delete_song(
         return {"message": f"Song {song_id} deleted"}
 
 
-@router.patch("/admin/deactivate-user")
+@router.patch("/deactivate-user")
 def admin_deactivate_user(
     current_user: Annotated[
         _auth_schemas.UserEmail, Depends(_auth_dependencies.get_current_active_user)
