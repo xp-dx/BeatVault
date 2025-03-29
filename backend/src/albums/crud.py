@@ -8,7 +8,7 @@ import base64
 
 from src.auth import schemas as _user_schemas
 
-from . import schemas as _schemas, constants as _constants
+from . import schemas as _schemas, constants as _constants, service as _service
 
 from .. import models as _global_models
 
@@ -104,4 +104,14 @@ async def create_album(
     }
 
 
-# def delete_album()
+def delete_album(current_user: _user_schemas.UserId, album_id: int, db: Session):
+    if _service.check_owner_of_album(user_id=current_user.id, album_id=album_id, db=db):
+        db.query(_global_models.UserAlbum).filter(
+            _global_models.UserAlbum.album_id == album_id
+        ).delete()
+        db.query(_global_models.Album).filter(
+            _global_models.Album.id == album_id
+        ).delete()
+        db.commit()
+        return True
+    return False

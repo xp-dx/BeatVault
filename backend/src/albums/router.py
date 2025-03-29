@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Form, File, UploadFile
+from fastapi import APIRouter, Depends, Form, File, HTTPException, UploadFile
 
 from sqlalchemy.orm import Session
 
@@ -44,3 +44,16 @@ async def create_album(
         description=description,
     )
     return await _crud.create_album(db=db, user=current_user, album=album, cover=cover)
+
+
+@router.delete("/delete-album/{album_id}")
+def delete_album(
+    current_user: Annotated[
+        _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
+    ],
+    album_id: int,
+    db: Session = Depends(_global_dependencies.get_db),
+):
+    if _crud.delete_album(current_user=current_user, album_id=album_id, db=db):
+        return {"message": "Album deleted"}
+    raise HTTPException(status_code=403, detail="Firbidden")
