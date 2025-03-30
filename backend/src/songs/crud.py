@@ -49,6 +49,21 @@ def get_part_songs(offset: int, limit: int, db: Session):
     return json.loads(json.dumps(songs_json, default=str))
 
 
+def get_song_by_id(song_id: int, db: Session):
+    song = (
+        db.query(_global_models.Song).filter(_global_models.Song.id == song_id).first()
+    )
+    return {
+        "id": song.id,
+        "title": song.title,
+        "artist": song.artist,
+        "genre": song.genre,
+        "price": song.price,
+        "lyrics": song.lyrics,
+        "cover": base64.b64encode(song.cover).decode("utf-8"),
+    }
+
+
 # import base64
 
 
@@ -148,11 +163,12 @@ async def upload_song(
 ):
     # try:
     file_data = await file.read()
-    cover_data = (
-        await base64.b64encode(cover.read()).decode("utf-8")
-        if cover
-        else _constants.DEFAULT_COVER
-    )
+    cover_data = await cover.read() if cover else _constants.DEFAULT_COVER
+    # cover_data = (
+    #     await base64.b64encode(cover.read()).decode("utf-8")
+    #     if cover
+    #     else _constants.DEFAULT_COVER
+    # )
     # if cover:
     #     cover_data = await cover.read()
     # else:
@@ -186,7 +202,7 @@ async def upload_song(
         "lyrics": db_song.lyrics,
         "price": db_song.price,
         # "cover": str(db_song.cover),
-        "cover": base64.b64encode(db_song.cover).decode("ascii"),
+        # "cover": base64.b64encode(db_song.cover).decode("ascii"),
         "album_id": db_song.album_id,
     }
 

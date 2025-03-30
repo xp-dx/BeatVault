@@ -53,6 +53,11 @@ def get_songs(
     return songs
 
 
+@router.get("/{song_id}")
+def get_song(song_id: int, db: Session = Depends(_global_dependencies.get_db)):
+    return _crud.get_song_by_id(song_id=song_id, db=db)
+
+
 # @router.get("/download-song/{song_id}")
 # async def download_song(
 #     current_user: Annotated[

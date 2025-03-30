@@ -36,11 +36,13 @@ async def read_user_me(
 
 
 @router.get("/{username}")
-async def read_user(
-    username: str, db: Session = Depends(_global_dependencies.get_db)
-) -> User:
+async def read_user(username: str, db: Session = Depends(_global_dependencies.get_db)):
     user = get_user_by_username(db=db, username=username)
-    return user
+    return {
+        "username": user.username,
+        "email": user.email,
+        "avatar": base64.b64encode(user.avatar if user.avatar else user.default_avatar),
+    }
 
 
 @router.delete("/delete-my-account")

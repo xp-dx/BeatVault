@@ -8,6 +8,24 @@ from .. import models as _global_models
 
 
 def delete_user(user_email: EmailStr, db: Session):
+    user = (
+        db.query(_global_models.User)
+        .filter(_global_models.User.email == user_email)
+        .first()
+    )
+    songs_ids = (
+        d.song_id
+        for d in db.query(_global_models.UserSong)
+        .filter(_global_models.UserSong.user_id == user.id)
+        .all()
+    )
+    # return songs_id
+    db.query(_global_models.UserSong).filter(
+        _global_models.UserSong.user_id == user.id
+    ).delete()
+
+    db.query(_global_models.Song).filter(_global_models.Song.id.in_(songs_ids)).delete()
+
     db.query(_global_models.User).filter(
         _global_models.User.email == user_email
     ).delete()
@@ -16,6 +34,9 @@ def delete_user(user_email: EmailStr, db: Session):
 
 
 def delete_song(song_id: int, db: Session):
+    db.query(_global_models.UserSong).filter(
+        _global_models.UserSong.song_id == song_id
+    ).delete()
     db.query(_global_models.Song).filter(_global_models.Song.id == song_id).delete()
     db.commit()
     return True
@@ -39,5 +60,13 @@ def deactivate_user(user_email: EmailStr, db: Session):
     db.query(_global_models.User).filter(
         _global_models.User.email == user_email
     ).update({"is_active": False})
+    db.commit()
+    return True
+
+
+def activate_user(user_email: EmailStr, db: Session):
+    db.query(_global_models.User).filter(
+        _global_models.User.email == user_email
+    ).update({"is_active": True})
     db.commit()
     return True

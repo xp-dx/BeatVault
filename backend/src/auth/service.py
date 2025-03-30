@@ -63,10 +63,11 @@ def get_user_by_email(db: Session, email: str):
 
 def get_all_users(db: Session):
     users = db.query(_global_models.User.id, _global_models.User.username).all()
-    users_json = []
-    for user in users:
-        users_json.append({"id": user[0], "username": user[1]})
-    return json.loads(json.dumps(users_json, default=str))
+    return [{"id": user[0], "username": user[1]} for user in users]
+    # users_json = []
+    # for user in users:
+    #     users_json.append({"id": user[0], "username": user[1]})
+    # return json.loads(json.dumps(users_json, default=str))
 
 
 async def confirm_email(token: str, db: Session):

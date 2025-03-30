@@ -18,7 +18,7 @@ from .. import dependencies as _global_dependencies
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def get_current_user(
@@ -28,7 +28,7 @@ def get_current_user(
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer", "Location": "/login"},
+        headers={"WWW-Authenticate": "Bearer", "Location": "/auth/login"},
     )
     try:
         payload = jwt.decode(token, _config.SECRET_KEY, algorithms=[_config.ALGORITHM])

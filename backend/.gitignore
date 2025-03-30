@@ -1,5 +1,6 @@
 # Byte-compiled files
 __pycache__
+.pytest_cache
 
 # Environments 
 .venv
@@ -7,6 +8,7 @@ __pycache__
 
 # Directories
 data
+tests
 
 # Files
 test.py
