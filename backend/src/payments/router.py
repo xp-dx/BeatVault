@@ -1,10 +1,8 @@
-from fastapi import APIRouter, HTTPException, responses, Request, Depends
+from fastapi import APIRouter, HTTPException, Request, Depends
 
 from sqlalchemy.orm import Session
 
 import stripe
-
-import json
 
 from typing import Annotated
 
@@ -14,7 +12,7 @@ from . import config as _config, crud as _crud, schemas as _schemas
 
 from .. import dependencies as _global_dependencies, models as _global_models
 
-router = APIRouter(tags=["payment"])
+router = APIRouter(tags=["payment"], prefix="/payment")
 
 stripe.api_key = _config.STRIPE_SECRET_KEY
 endpoint_secret = _config.ENDPOINT_SECRET
@@ -27,13 +25,7 @@ async def create_checkout_session(
     ],
     song_id: int,
     db: Session = Depends(_global_dependencies.get_db),
-    # current_user_id=1,
 ):
-    # current_user = (
-    #     db.query(_global_models.User)
-    #     .filter(_global_models.User.id == current_user_id)
-    #     .first()
-    # )
     song = (
         db.query(_global_models.Song).filter(_global_models.Song.id == song_id).first()
     )
@@ -68,16 +60,16 @@ async def create_checkout_session(
             "song_id": song.id,
         },
         mode="payment",
-        success_url=_config.BASE_URL + f"/download-song/{song_id}",
+        success_url=_config.BASE_URL + f"/songs/download-song/{song_id}",
         cancel_url=_config.BASE_URL + "/songs",
         customer_email=current_user.email,
-        payment_intent_data={
-            "transfer_data": {
-                "destination": seller.stripe_account_id,
-            }
-        },
+        # payment_intent_data={
+        #     "transfer_data": {
+        #         "destination": seller.stripe_account_id,
+        #     }
+        # },
     )
-    return responses.RedirectResponse(checkout_session.url, status_code=303)
+    return {"redirect_url": checkout_session.url}
 
 
 @router.post("/webhook/")
