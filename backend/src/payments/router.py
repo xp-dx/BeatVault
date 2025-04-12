@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, HTTPException, Request, Depends, status
 
 from sqlalchemy.orm import Session
 
@@ -7,6 +7,9 @@ import stripe
 from typing import Annotated
 
 from src.auth import dependencies as _auth_dependencies, schemas as _auth_schemas
+from src.songs import service as _songs_service
+from src.auth import service as _auth_service
+
 
 from . import config as _config, crud as _crud, schemas as _schemas
 
@@ -41,35 +44,43 @@ async def create_checkout_session(
         .filter(_global_models.User.id == seller_id)
         .first()
     )
-
-    checkout_session = stripe.checkout.Session.create(
-        line_items=[
-            {
-                "price_data": {
-                    "currency": "rub",
-                    "product_data": {
-                        "name": song.title,
+    if not _songs_service.check_access_to_song(
+        _auth_service.get_user_by_email(db=db, email=current_user.email),
+        song=song,
+        db=db,
+    ):
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "rub",
+                        "product_data": {
+                            "name": song.title,
+                        },
+                        "unit_amount": int(song.price * 100),
                     },
-                    "unit_amount": int(song.price * 100),
-                },
-                "quantity": 1,
-            }
-        ],
-        metadata={
-            "user_id": current_user.id,
-            "song_id": song.id,
-        },
-        mode="payment",
-        success_url=_config.BASE_URL + f"/songs/download-song/{song_id}",
-        cancel_url=_config.BASE_URL + "/songs",
-        customer_email=current_user.email,
-        # payment_intent_data={
-        #     "transfer_data": {
-        #         "destination": seller.stripe_account_id,
-        #     }
-        # },
+                    "quantity": 1,
+                }
+            ],
+            metadata={
+                "user_id": current_user.id,
+                "song_id": song.id,
+            },
+            mode="payment",
+            success_url=_config.BASE_URL + f"/songs/download-song/{song_id}",
+            cancel_url=_config.BASE_URL + "/songs",
+            customer_email=current_user.email,
+            # payment_intent_data={
+            #     "transfer_data": {
+            #         "destination": seller.stripe_account_id,
+            #     }
+            # },
+        )
+        return {"redirect_url": checkout_session.url}
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail="You have already access to this song",
     )
-    return {"redirect_url": checkout_session.url}
 
 
 @router.post("/webhook/")

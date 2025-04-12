@@ -1,7 +1,7 @@
 # def upload_mp3_file()
 from sqlalchemy.orm import Session
 
-from random import shuffle
+from src.auth import schemas as _auth_schemas
 
 from .. import models as _global_models
 
@@ -19,7 +19,7 @@ def check_owner_of_song(user, song_id, db: Session):
     return False
 
 
-def check_access_to_song(user, song, db: Session):
+def check_access_to_song(user: _auth_schemas.UserId, song, db: Session):
     # user_song = db.query(_global_models.UserSong)
     payments = db.query(_global_models.Payment)
     if (

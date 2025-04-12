@@ -7,8 +7,9 @@ __pycache__
 .env
 
 # Directories
-data
-tests
+data/
+tests/
+chat/
 
 # Files
 test.py

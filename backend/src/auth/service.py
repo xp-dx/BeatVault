@@ -61,6 +61,12 @@ def get_user_by_email(db: Session, email: str):
     )
 
 
+def get_user_by_id(db: Session, user_id: int):
+    return (
+        db.query(_global_models.User).filter(_global_models.User.id == user_id).first()
+    )
+
+
 def get_all_users(db: Session):
     users = db.query(_global_models.User.id, _global_models.User.username).all()
     return [{"id": user[0], "username": user[1]} for user in users]
