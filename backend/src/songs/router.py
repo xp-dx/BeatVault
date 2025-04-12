@@ -47,14 +47,16 @@ router = APIRouter(tags=["songs"], prefix="/songs")
 def get_songs(
     offset: int = Query(0, alias="offset", ge=0),
     limit: int = Query(50, alias="limit", le=100),
-    db: Session = Depends(_global_dependencies.get_db),
+    db: Session = Depends(_global_dependencies.get_async_session),
 ):
     songs = _crud.get_part_songs(offset=offset, limit=limit, db=db)
     return songs
 
 
 @router.get("/{song_id}")
-def get_song(song_id: int, db: Session = Depends(_global_dependencies.get_db)):
+def get_song(
+    song_id: int, db: Session = Depends(_global_dependencies.get_async_session)
+):
     return _crud.get_song_by_id(song_id=song_id, db=db)
 
 
@@ -105,7 +107,7 @@ async def download_song(
         _auth_schemas.UserId, Depends(_auth_dependencies.get_current_active_user)
     ],
     song_id: int,
-    db: Session = Depends(_global_dependencies.get_db),
+    db: Session = Depends(_global_dependencies.get_async_session),
 ):
     try:
         song = (
@@ -135,7 +137,7 @@ def get_purchased_songs(
     current_user: Annotated[
         _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
     ],
-    db: Session = Depends(_global_dependencies.get_db),
+    db: Session = Depends(_global_dependencies.get_async_session),
 ):
     return _crud.get_all_purchased_songs(user=current_user, db=db)
 
@@ -145,7 +147,7 @@ def get_uploaded_songs(
     current_user: Annotated[
         _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
     ],
-    db: Session = Depends(_global_dependencies.get_db),
+    db: Session = Depends(_global_dependencies.get_async_session),
 ):
     return _crud.get_all_uploaded_songs(user=current_user, db=db)
 
@@ -153,7 +155,7 @@ def get_uploaded_songs(
 @router.get("/play-song/{song_id}")
 async def play_song(
     song_id: int,
-    db: Session = Depends(_global_dependencies.get_db),
+    db: Session = Depends(_global_dependencies.get_async_session),
 ):
     try:
         song = (
@@ -184,7 +186,7 @@ async def upload_song(
     lyrics: Annotated[str | None, Form()] = None,
     cover: Annotated[UploadFile | None, File()] = None,
     album_id: Annotated[int | None, Form()] = None,
-    db: Session = Depends(_global_dependencies.get_db),
+    db: Session = Depends(_global_dependencies.get_async_session),
 ):
     song = _schemas.SongUpload(
         title=title,
@@ -213,7 +215,7 @@ async def update_song(
     price: Annotated[Decimal | None, Form()] = None,
     lyrics: Annotated[str | None, Form()] = None,
     album_id: Annotated[int | None, Form()] = None,
-    db: Session = Depends(_global_dependencies.get_db),
+    db: Session = Depends(_global_dependencies.get_async_session),
 ):
     song = _schemas.SongUpdate(
         title=title,
@@ -237,7 +239,7 @@ async def delete_song(
         _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
     ],
     song_id: int,
-    db: Session = Depends(_global_dependencies.get_db),
+    db: Session = Depends(_global_dependencies.get_async_session),
 ):
     if _service.check_owner_of_song(user=current_user, song_id=song_id, db=db):
         _crud.delete_song(song_id=song_id, db=db)

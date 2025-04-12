@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from contextlib import asynccontextmanager
+
 from .auth import router as auth_router
 from .songs import router as songs_router
 from .albums import router as albums_router
@@ -8,17 +10,23 @@ from .payments import router as payment_router
 from .users import router as users_router
 from .admin import router as admin_router
 
+from . import services as _global_services
 
-from . import services as _services
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Код выполняется при старте приложения
+    await _global_services.create_database()
+    yield
 
 
 app = FastAPI(
     title="BeatVault",
     description="It is a service for buying and selling music",
     version="0.0.1",
+    lifespan=lifespan,
 )
 
-_services.create_database()
 
 app.add_middleware(
     CORSMiddleware,

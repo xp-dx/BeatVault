@@ -1,18 +1,11 @@
 import base64
 
-from . import database as _database, models as _models
+from . import database as _global_database, models as _global_models
 
 
-def create_database():
-    return _models.Base.metadata.create_all(_database.engine)
-
-
-def get_db():
-    db = _database.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+async def create_database():
+    async with _global_database.engine.begin() as conn:
+        await conn.run_sync(_global_models.Base.metadata.create_all)
 
 
 def converting_file_to_base64(file):

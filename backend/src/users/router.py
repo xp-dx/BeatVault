@@ -18,7 +18,7 @@ router = APIRouter(tags=["users"], prefix="/users")
 
 
 @router.get("/")
-async def read_users(db: Session = Depends(_global_dependencies.get_db)):
+async def read_users(db: Session = Depends(_global_dependencies.get_async_session)):
     return get_all_users(db=db)
 
 
@@ -36,7 +36,9 @@ async def read_user_me(
 
 
 @router.get("/{username}")
-async def read_user(username: str, db: Session = Depends(_global_dependencies.get_db)):
+async def read_user(
+    username: str, db: Session = Depends(_global_dependencies.get_async_session)
+):
     user = get_user_by_username(db=db, username=username)
     return {
         "username": user.username,
@@ -48,7 +50,7 @@ async def read_user(username: str, db: Session = Depends(_global_dependencies.ge
 @router.delete("/delete-my-account")
 def delete_user(
     current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(_global_dependencies.get_db),
+    db: Session = Depends(_global_dependencies.get_async_session),
 ):
     _crud.delete_user(current_user=current_user, db=db)
     return {"message": "User deleted"}
@@ -58,7 +60,7 @@ def delete_user(
 def update_username(
     current_user: Annotated[User, Depends(get_current_active_user)],
     new_username: str,
-    db: Session = Depends(_global_dependencies.get_db),
+    db: Session = Depends(_global_dependencies.get_async_session),
 ):
 
     return {

@@ -14,7 +14,7 @@ router = APIRouter(tags=["albums"], prefix="/albums")
 
 
 @router.get("/")
-def read_albums(db: Session = Depends(_global_dependencies.get_db)):
+def read_albums(db: Session = Depends(_global_dependencies.get_async_session)):
     return _crud.read_all_albums(db=db)
 
 
@@ -24,7 +24,9 @@ def read_albums(db: Session = Depends(_global_dependencies.get_db)):
 
 
 @router.get("/{album_id}")
-def read_album(album_id: int, db: Session = Depends(_global_dependencies.get_db)):
+def read_album(
+    album_id: int, db: Session = Depends(_global_dependencies.get_async_session)
+):
     return _crud.read_album_songs(db=db, album_id=album_id)
 
 
@@ -37,7 +39,7 @@ async def create_album(
     # album: Annotated[_schemas.Album, Form()],
     title: Annotated[str, Form()],
     description: Annotated[str, Form()],
-    db: Session = Depends(_global_dependencies.get_db),
+    db: Session = Depends(_global_dependencies.get_async_session),
 ):
     album = _schemas.Album(
         title=title,
@@ -52,7 +54,7 @@ def delete_album(
         _auth_schemas.User, Depends(_auth_dependencies.get_current_active_user)
     ],
     album_id: int,
-    db: Session = Depends(_global_dependencies.get_db),
+    db: Session = Depends(_global_dependencies.get_async_session),
 ):
     if _crud.delete_album(current_user=current_user, album_id=album_id, db=db):
         return {"message": "Album deleted"}

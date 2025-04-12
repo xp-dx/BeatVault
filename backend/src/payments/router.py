@@ -27,7 +27,7 @@ async def create_checkout_session(
         _auth_schemas.UserEmail, Depends(_auth_dependencies.get_current_active_user)
     ],
     song_id: int,
-    db: Session = Depends(_global_dependencies.get_db),
+    db: Session = Depends(_global_dependencies.get_async_session),
 ):
     song = (
         db.query(_global_models.Song).filter(_global_models.Song.id == song_id).first()
@@ -85,7 +85,7 @@ async def create_checkout_session(
 
 @router.post("/webhook/")
 async def stripe_webhook(
-    request: Request, db: Session = Depends(_global_dependencies.get_db)
+    request: Request, db: Session = Depends(_global_dependencies.get_async_session)
 ):
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
