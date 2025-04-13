@@ -15,7 +15,6 @@ from fastapi.responses import Response
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import Session
 from sqlalchemy import select
 
 from io import BytesIO

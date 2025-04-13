@@ -21,7 +21,7 @@ async def check_owner_of_song(user, song_id, db: AsyncSession):
 
 async def check_access_to_song(user: _auth_schemas.UserId, song, db: AsyncSession):
     result = await db.execute(
-        select(_global_models.UserSong).where(
+        select(_global_models.UserSong.user_id).where(
             or_(
                 _global_models.UserSong.user_id == user.id,
                 and_(

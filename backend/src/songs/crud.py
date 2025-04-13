@@ -243,11 +243,9 @@ async def upload_song(
 
 
 async def update_song(song_id: int, update_data: Dict[str, Any], db: AsyncSession):
-    db_song = (
-        await db.execute(
-            select(_global_models.Song).where(_global_models.Song.id == song_id)
-        )
-    ).scalar_one_or_none()
+    db_song = await db.execute(
+        select(_global_models.Song).where(_global_models.Song.id == song_id)
+    )
 
     if not db_song:
         raise HTTPException(status_code=404, detail="Song not found")
