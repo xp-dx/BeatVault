@@ -16,7 +16,7 @@ async def create_user(
     else:
         avatar_data = _constants.DEFAULT_AVATAR
 
-    hashed_password = await _service.get_password_hash(user.password)
+    hashed_password = _service.get_password_hash(user.password)
     db_user = _global_models.User(
         username=user.username,
         email=user.email,
