@@ -14,7 +14,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
 from jose import JWTError, jwt
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from pydantic import EmailStr
 
@@ -48,7 +48,7 @@ async def registration(
     password: Annotated[str, Form()],
     stripe_account_id: Annotated[str, Form()],
     avatar: Annotated[UploadFile | None, File()] = None,
-    db: Session = Depends(_global_dependencies.get_async_session),
+    db: AsyncSession = Depends(_global_dependencies.get_async_session),
 ):
     new_user = _schemas.UserCreate(
         username=username,
@@ -56,7 +56,7 @@ async def registration(
         password=password,
         stripe_account_id=stripe_account_id,
     )
-    db_user = _service.get_user_by_username(db, new_user.username)
+    db_user = await _service.get_user_by_username(db, new_user.username)
     if db_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="User already exists"
@@ -64,17 +64,12 @@ async def registration(
     return await _crud.create_user(db=db, user=new_user, avatar=avatar)
 
 
-@router.get("/registration")
-def registration(request: Request):
-    return "asd"
-
-
 @router.post("/login")
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Session = Depends(_global_dependencies.get_async_session),
+    db: AsyncSession = Depends(_global_dependencies.get_async_session),
 ) -> _schemas.Token:
-    user = _service.authenticate_user(
+    user = await _service.authenticate_user(
         db=db, username=form_data.username, password=form_data.password
     )
     if not user:
@@ -90,17 +85,12 @@ async def login_for_access_token(
     return _schemas.Token(access_token=access_token, token_type="bearer")
 
 
-@router.get("/login")
-def login(request: Request):
-    return "asd"
-
-
 @router.post("/request-password-reset", tags=["users"])
 async def request_password_reset(
     email: str,
-    db: Session = Depends(_global_dependencies.get_async_session),
+    db: AsyncSession = Depends(_global_dependencies.get_async_session),
 ):
-    user = _service.get_user_by_email(db, email)
+    user = await _service.get_user_by_email(db, email)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -123,7 +113,7 @@ async def request_password_reset(
 async def reset_password(
     token: str,
     new_password: Annotated[str, Form()],
-    db: Session = Depends(_global_dependencies.get_async_session),
+    db: AsyncSession = Depends(_global_dependencies.get_async_session),
 ):
     email_bytes = await _redis.redis_client.get(f"password_reset:{token}")
     if not email_bytes:
@@ -147,10 +137,10 @@ async def confirm_email(
     current_user: Annotated[
         _schemas.UserEmail, Depends(_dependencies.get_current_active_user)
     ],
-    db: Session = Depends(_global_dependencies.get_async_session),
+    db: AsyncSession = Depends(_global_dependencies.get_async_session),
 ):
     email = current_user.email
-    if not _service.is_verified(email, db):
+    if not await _service.is_verified(email, db):
         token = _celery_utils.create_confirmation_token(email)
         confirmation_url = f"http://127.0.0.1:8000/confirm-email?token={token}"
 
@@ -162,7 +152,7 @@ async def confirm_email(
 
 @router.get("/confirm-email", tags=["users"])
 async def confirm_email(
-    token: str, db: Session = Depends(_global_dependencies.get_async_session)
+    token: str, db: AsyncSession = Depends(_global_dependencies.get_async_session)
 ):
     try:
         return await _service.confirm_email(token, db)

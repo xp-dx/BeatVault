@@ -1,25 +1,27 @@
 import base64
 
-
 from fastapi import APIRouter, Depends
 
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from typing import Annotated
-
-from . import crud as _crud
-from .. import dependencies as _global_dependencies, models as _global_models
 
 from src.auth.service import get_user_by_username, get_all_users
 from src.auth.schemas import UserMe, User
 from src.auth.dependencies import get_current_active_user
 
+from . import crud as _crud
+from .. import dependencies as _global_dependencies
+
+
 router = APIRouter(tags=["users"], prefix="/users")
 
 
 @router.get("/")
-async def read_users(db: Session = Depends(_global_dependencies.get_async_session)):
-    return get_all_users(db=db)
+async def read_users(
+    db: AsyncSession = Depends(_global_dependencies.get_async_session),
+):
+    return await get_all_users(db=db)
 
 
 @router.get("/me")
@@ -37,9 +39,9 @@ async def read_user_me(
 
 @router.get("/{username}")
 async def read_user(
-    username: str, db: Session = Depends(_global_dependencies.get_async_session)
+    username: str, db: AsyncSession = Depends(_global_dependencies.get_async_session)
 ):
-    user = get_user_by_username(db=db, username=username)
+    user = await get_user_by_username(db=db, username=username)
     return {
         "username": user.username,
         "email": user.email,
@@ -48,23 +50,23 @@ async def read_user(
 
 
 @router.delete("/delete-my-account")
-def delete_user(
+async def delete_user(
     current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(_global_dependencies.get_async_session),
+    db: AsyncSession = Depends(_global_dependencies.get_async_session),
 ):
-    _crud.delete_user(current_user=current_user, db=db)
+    await _crud.delete_user(current_user=current_user, db=db)
     return {"message": "User deleted"}
 
 
 @router.patch("/change-my-username")
-def update_username(
+async def update_username(
     current_user: Annotated[User, Depends(get_current_active_user)],
     new_username: str,
-    db: Session = Depends(_global_dependencies.get_async_session),
+    db: AsyncSession = Depends(_global_dependencies.get_async_session),
 ):
 
     return {
-        "message": f"Your new username: {_crud.update_username(
+        "message": f"Your new username: {await _crud.update_username(
             current_user=current_user, new_username=new_username, db=db
         )}"
     }

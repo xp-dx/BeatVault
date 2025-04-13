@@ -1,33 +1,29 @@
-import base64
+from sqlalchemy import select, delete
+from sqlalchemy.ext.asyncio import AsyncSession
 
-
-from fastapi import APIRouter, Depends
-
-from sqlalchemy.orm import Session
-
-from typing import Annotated
-
-from .. import dependencies as _global_dependencies, models as _global_models
-
-from src.auth.service import get_user_by_username, get_all_users
 from src.auth import schemas as _auth_schemas
-from src.auth.dependencies import get_current_active_user
+
+from .. import models as _global_models
 
 
-def delete_user(current_user: _auth_schemas.User, db: Session):
-    db.query(_global_models.User).filter(
-        _global_models.User.id == current_user.id
-    ).delete()
-    db.commit()
+async def delete_user(current_user: _auth_schemas.User, db: AsyncSession):
+    await db.execute(
+        delete(_global_models.User).where(_global_models.User.id == current_user.id)
+    )
+    await db.commit()
     return True
 
 
-def update_username(current_user: _auth_schemas.User, new_username: str, db: Session):
+async def update_username(
+    current_user: _auth_schemas.User, new_username: str, db: AsyncSession
+):
     user = (
-        db.query(_global_models.User)
-        .filter(_global_models.User.id == current_user.id)
-        .first()
-    )
+        await db.execute(
+            select(_global_models.User.username).where(
+                _global_models.User.id == current_user.id
+            )
+        )
+    ).scalar_one_or_none()
     user.username = new_username
-    db.commit()
+    await db.commit()
     return user.username
