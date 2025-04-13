@@ -40,34 +40,32 @@ async def authenticate_user(db: AsyncSession, username: str, password: str):
 
 
 async def get_user_by_username(db: AsyncSession, username: str):
-    return (
-        await db.execute(
-            select(_global_models.User).where(_global_models.User.username == username)
-        )
-    ).first()
+    result = await db.execute(
+        select(_global_models.User).where(_global_models.User.username == username)
+    )
+    return result.scalar_one_or_none()
 
 
 async def get_user_by_email(db: AsyncSession, email: str):
-    return (
-        await db.execute(
-            select(_global_models.User).where(_global_models.User.email == email)
-        )
-    ).first()
+    result = await db.execute(
+        select(_global_models.User).where(_global_models.User.email == email)
+    )
+    return result.scalar_one_or_none()
 
 
 async def get_user_by_id(db: AsyncSession, user_id: int):
-    return (
-        await db.execute(
-            select(_global_models.User).where(_global_models.User.user_id == user_id)
-        )
-    ).first()
+    result = await db.execute(
+        select(_global_models.User).where(_global_models.User.user_id == user_id)
+    )
+    return result.scalar_one_or_none()
 
 
 async def get_all_users(db: AsyncSession):
-    users = (
-        await db.execute(select(_global_models.User.id, _global_models.User.username))
-    ).all()
-    return [{"id": user[0], "username": user[1]} for user in users]
+    result = await db.execute(
+        select(_global_models.User.id, _global_models.User.username)
+    )
+    users = result.all()
+    return [{"id": user.id, "username": user.username} for user in users]
 
 
 async def confirm_email(token: str, db: AsyncSession):
@@ -86,5 +84,5 @@ async def is_verified(email: str, db: AsyncSession):
         await db.execute(select(_global_models.User)).where(
             _global_models.User.email == email
         )
-    ).first()
+    ).scalar_one_or_none()
     return user is not None and user.is_verified
