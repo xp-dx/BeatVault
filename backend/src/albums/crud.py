@@ -1,6 +1,7 @@
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile
 
-from sqlalchemy.orm import Session
+from sqlalchemy import select, delete
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import json
 
@@ -13,48 +14,39 @@ from . import schemas as _schemas, constants as _constants, service as _service
 from .. import models as _global_models
 
 
-def read_all_albums(db: Session):
-    db_albums = db.query(_global_models.Album).all()
-    albums_json = []
-    for album in db_albums:
-        albums_json.append(
-            {"id": album.id, "title": album.title, "description": album.description}
-        )
-    return json.loads(json.dumps(albums_json, default=str))
+async def read_all_albums(db: AsyncSession):
+    albums_result = await db.execute(select(_global_models.Album))
+    albums = albums_result.scalars().all()
+
+    albums_json = [
+        {"id": album.id, "title": album.title, "description": album.description}
+        for album in albums
+    ]
+
+    return albums_json
 
 
-# def read_album(db: Session, album_id: int):
-#     db_album = (
-#         db.query(_global_models.Album)
-#         .filter(_global_models.Album.id == album_id)
-#         .first()
-#     )
-#     return db_album
-
-
-def read_album_songs(db: Session, album_id: int):
-    db_album = (
-        db.query(_global_models.Album)
-        .filter(_global_models.Album.id == album_id)
-        .first()
+async def read_album_songs(db: AsyncSession, album_id: int):
+    album_result = await db.execute(
+        select(_global_models.Album).where(_global_models.Album.id == album_id)
     )
+    album = album_result.scalar_one_or_none()  # Получаем альбом
 
-    db_album_songs = (
-        db.query(_global_models.Song)
-        .filter(_global_models.Song.album_id == album_id)
-        .all()
+    if not album:
+        raise HTTPException(status_code=404, detail="Album not found")
+
+    songs_result = await db.execute(
+        select(_global_models.Song).where(_global_models.Song.album_id == album_id)
     )
+    album_songs = songs_result.scalars().all()
+
     album_songs_json = {
         "album": {
-            "id": db_album.id,
-            "title": db_album.title,
-            "description": db_album.description,
+            "id": album.id,
+            "title": album.title,
+            "description": album.description,
         },
-        "songs": [],
-    }
-
-    for album_song in db_album_songs:
-        album_songs_json["songs"].append(
+        "songs": [
             {
                 "id": album_song.id,
                 "title": album_song.title,
@@ -62,12 +54,15 @@ def read_album_songs(db: Session, album_id: int):
                 "genre": album_song.genre,
                 "price": album_song.price,
             }
-        )
-    return json.loads(json.dumps(album_songs_json, default=str))
+            for album_song in album_songs
+        ],
+    }
+
+    return album_songs_json
 
 
 async def create_album(
-    db: Session,
+    db: AsyncSession,
     user: _user_schemas.UserId,
     album: _schemas.Album,
     cover: UploadFile | None,
@@ -83,18 +78,12 @@ async def create_album(
         cover=cover_data,
     )
     db.add(db_album)
-    db.commit()
-    db.refresh(db_album)
-
-    # stmt = insert(_global_models.artist_album).values(
-    #     artist_id=user.id, album_id=db_album.id
-    # )
-    # db.execute(stmt)
-    # db.commit()
+    await db.commit()
+    await db.refresh(db_album)
 
     db_user_album = _global_models.UserAlbum(user_id=user.id, album_id=db_album.id)
     db.add(db_user_album)
-    db.commit()
+    await db.commit()
 
     return {
         "id": db_album.id,
@@ -104,14 +93,23 @@ async def create_album(
     }
 
 
-def delete_album(current_user: _user_schemas.UserId, album_id: int, db: Session):
-    if _service.check_owner_of_album(user_id=current_user.id, album_id=album_id, db=db):
-        db.query(_global_models.UserAlbum).filter(
-            _global_models.UserAlbum.album_id == album_id
-        ).delete()
-        db.query(_global_models.Album).filter(
-            _global_models.Album.id == album_id
-        ).delete()
-        db.commit()
+async def delete_album(
+    current_user: _user_schemas.UserId, album_id: int, db: AsyncSession
+):
+    is_owner = await _service.check_owner_of_album(
+        user_id=current_user.id, album_id=album_id, db=db
+    )
+    if is_owner:
+        await db.execute(
+            delete(_global_models.UserAlbum).where(
+                _global_models.UserAlbum.album_id == album_id
+            )
+        )
+
+        await db.execute(
+            delete(_global_models.Album).where(_global_models.Album.id == album_id)
+        )
+
+        await db.commit()
         return True
     return False
