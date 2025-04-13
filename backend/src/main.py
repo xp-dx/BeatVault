@@ -15,7 +15,6 @@ from . import services as _global_services
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Код выполняется при старте приложения
     await _global_services.create_database()
     yield
 

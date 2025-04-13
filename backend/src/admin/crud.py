@@ -1,72 +1,91 @@
 from pydantic import EmailStr
-from sqlalchemy.orm import Session
-from src.auth import dependencies as _auth_dependencies
 
+from sqlalchemy import select, delete, update
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.auth import dependencies as _auth_dependencies
 from src.auth import schemas as _auth_schemas
 
 from .. import models as _global_models
 
 
-def delete_user(user_email: EmailStr, db: Session):
-    user = (
-        db.query(_global_models.User)
-        .filter(_global_models.User.email == user_email)
-        .first()
+async def delete_user(user_email: EmailStr, db: AsyncSession):
+    user_result = await db.execute(
+        select(_global_models.User.id).where(_global_models.User.email == user_email)
     )
-    songs_ids = (
-        d.song_id
-        for d in db.query(_global_models.UserSong)
-        .filter(_global_models.UserSong.user_id == user.id)
-        .all()
+    user = user_result.scalar_one_or_none()
+    if not user:
+        return False
+
+    songs_result = await db.execute(
+        select(_global_models.UserSong.song_id).where(
+            _global_models.UserSong.user_id == user.id
+        )
     )
-    # return songs_id
-    db.query(_global_models.UserSong).filter(
-        _global_models.UserSong.user_id == user.id
-    ).delete()
+    songs_ids = [row[0] for row in songs_result.all()]
 
-    db.query(_global_models.Song).filter(_global_models.Song.id.in_(songs_ids)).delete()
+    await db.execute(
+        delete(_global_models.UserSong).where(
+            _global_models.UserSong.user_id == user.id
+        )
+    )
 
-    db.query(_global_models.User).filter(
-        _global_models.User.email == user_email
-    ).delete()
-    db.commit()
+    if songs_ids:
+        await db.execute(
+            delete(_global_models.Song).where(_global_models.Song.id.in_(songs_ids))
+        )
+
+    await db.execute(
+        delete(_global_models.User).where(_global_models.User.email == user_email)
+    )
+
+    await db.commit()
     return True
 
 
-def delete_song(song_id: int, db: Session):
-    db.query(_global_models.UserSong).filter(
-        _global_models.UserSong.song_id == song_id
-    ).delete()
-    db.query(_global_models.Song).filter(_global_models.Song.id == song_id).delete()
-    db.commit()
+async def delete_song(song_id: int, db: AsyncSession):
+    await db.execute(
+        delete(_global_models.UserSong).where(
+            _global_models.UserSong.song_id == song_id
+        )
+    )
+    await db.execute(
+        delete(_global_models.Song).where(_global_models.Song.id == song_id)
+    )
+    await db.commit()
     return True
 
 
-def check_role(current_user: _auth_schemas.UserEmail, db: Session):
-    user = (
-        db.query(_global_models.User)
-        .filter(_global_models.User.email == current_user.email)
-        .first()
+async def check_role(current_user: _auth_schemas.UserEmail, db: AsyncSession):
+    result = await db.execute(
+        select(_global_models.User).where(
+            _global_models.User.email == current_user.email
+        )
     )
-    if user.is_superuser:
-        print("True")
+    user = result.scalar_one_or_none()
+
+    if user and user.is_superuser:
         return True
-    print("False")
-
     return False
 
 
-def deactivate_user(user_email: EmailStr, db: Session):
-    db.query(_global_models.User).filter(
-        _global_models.User.email == user_email
-    ).update({"is_active": False})
-    db.commit()
+async def deactivate_user(user_email: EmailStr, db: AsyncSession):
+    stmt = (
+        update(_global_models.User)
+        .where(_global_models.User.email == user_email)
+        .values(is_active=False)
+    )
+    await db.execute(stmt)
+    await db.commit()
     return True
 
 
-def activate_user(user_email: EmailStr, db: Session):
-    db.query(_global_models.User).filter(
-        _global_models.User.email == user_email
-    ).update({"is_active": True})
-    db.commit()
+async def activate_user(user_email: EmailStr, db: AsyncSession):
+    stmt = (
+        update(_global_models.User)
+        .where(_global_models.User.email == user_email)
+        .values(is_active=True)
+    )
+    await db.execute(stmt)
+    await db.commit()
     return True
