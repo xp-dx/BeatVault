@@ -149,14 +149,14 @@ async def play_song(
     db: AsyncSession = Depends(_global_dependencies.get_async_session),
 ):
     try:
-        song = (
+        song_file = (
             await db.execute(
                 select(_global_models.Song.file).where(
                     _global_models.Song.id == song_id
                 )
             )
         ).scalar_one_or_none()
-        file_stream = BytesIO(song.file)
+        file_stream = BytesIO(song_file)
 
         return StreamingResponse(
             file_stream,
