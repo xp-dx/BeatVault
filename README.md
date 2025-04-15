@@ -11,6 +11,7 @@ A pet project for buying and selling music, built with modern Python technologie
 - **PostgreSQL** – relational database for storing users, tracks, orders, etc.  
 - **SQLAlchemy** (async) – ORM for working with the database  
 - **Pydantic** – data validation and settings management  
+- **Alembic** – database migrations management  
 - **Docker** – containerization for easy deployment  
 - **Stripe** – payment gateway integration  
 - **AsyncIO** – for scalable and non-blocking operations
