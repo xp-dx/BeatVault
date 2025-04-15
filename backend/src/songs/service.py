@@ -1,26 +1,38 @@
 # def upload_mp3_file()
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, or_, and_
 
-from random import shuffle
+from src.auth import schemas as _auth_schemas
 
 from .. import models as _global_models
 
 
-def check_access_to_song(user, song, db: Session):
-    user_song = db.query(_global_models.UserSong)
-    payments = db.query(_global_models.Payment)
+async def check_owner_of_song(user, song_id, db: AsyncSession):
     if (
-        user_song.filter(
-            _global_models.UserSong.user_id == user.id,
-            _global_models.UserSong.song_id == song.id,
-        ).first()
-        or payments.filter(
-            _global_models.Payment.user_id == user.id,
-            _global_models.Payment.song_id == song.id,
-            _global_models.Payment.status == "successfully",
-        ).first()
-    ):
+        await db.execute(
+            select(_global_models.UserSong.user_id).where(
+                _global_models.UserSong.user_id == user.id,
+                _global_models.UserSong.song_id == song_id,
+            )
+        )
+    ).scalar_one_or_none:
         return True
 
 
-# def shuffle_songs()
+async def check_access_to_song(user: _auth_schemas.UserId, song, db: AsyncSession):
+    result = await db.execute(
+        select(_global_models.UserSong.user_id).where(
+            or_(
+                _global_models.UserSong.user_id == user.id,
+                and_(
+                    _global_models.Payment.user_id == user.id,
+                    _global_models.Payment.song_id == song.id,
+                    _global_models.Payment.status == "successfully",
+                ),
+            )
+        )
+    )
+
+    access = result.scalar_one_or_none() is not None
+
+    return access

@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from sqlalchemy import (
     Column,
     Integer,
@@ -10,49 +8,34 @@ from sqlalchemy import (
     LargeBinary,
     DateTime,
     Numeric,
+    func,
 )
-
-# from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, LargeBinary
 from sqlalchemy.orm import relationship
-
 from .database import Base
-
-# Many-to-Many ( artist_album )
-# artist_album = Table(
-#     "artist_album",
-#     Base.metadata,
-#     Column("artist_id", Integer(), ForeignKey("users.id")),
-#     Column("album_id", Integer(), ForeignKey("albums.id")),
-# )
 
 
 # Many-to-Many ( artist_album )
 class UserAlbum(Base):
     __tablename__ = "user_album"
 
-    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
-    album_id = Column(Integer, ForeignKey("albums.id"), primary_key=True)
-
-    # Опционально: вы можете добавить отношения, если хотите
-    # artist = relationship("User", back_populates="albums")
-    # album = relationship("Album", back_populates="artists")
-
-
-# # Many-to-Many ( artist_song )
-# artist_song = Table(
-#     "artist_song",
-#     Base.metadata,
-#     Column("artist_id", Integer(), ForeignKey("users.id")),
-#     Column("song_id", Integer(), ForeignKey("songs.id")),
-# )
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    album_id = Column(
+        Integer, ForeignKey("albums.id", ondelete="CASCADE"), primary_key=True
+    )
 
 
 # Many-to-Many ( artist_song )
 class UserSong(Base):
     __tablename__ = "user_song"
 
-    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
-    song_id = Column(Integer, ForeignKey("songs.id"), primary_key=True)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    song_id = Column(
+        Integer, ForeignKey("songs.id", ondelete="CASCADE"), primary_key=True
+    )
 
 
 # Users
@@ -65,13 +48,17 @@ class User(Base):
     hashed_password = Column(String)
     avatar = Column(LargeBinary, nullable=True)
     default_avatar = Column(LargeBinary)
-
-    # is_artist = Column(Boolean, default=False)
     is_verified = Column(Boolean, default=False)
     is_superuser = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
-
     stripe_account_id = Column(String)
+
+    # Relationships
+    payments = relationship(
+        "Payment", back_populates="user", cascade="all, delete-orphan"
+    )
+    albums = relationship("Album", secondary="user_album", backref="users")
+    songs = relationship("Song", secondary="user_song", backref="users")
 
 
 # Albums
@@ -84,7 +71,7 @@ class Album(Base):
     cover = Column(LargeBinary, nullable=True)
     default_cover = Column(LargeBinary)
 
-    songs = relationship("Song")  # One-to-Many ( Many songs )
+    songs = relationship("Song", back_populates="album", cascade="all, delete-orphan")
 
 
 # Songs
@@ -102,19 +89,29 @@ class Song(Base):
     default_cover = Column(LargeBinary)
 
     album_id = Column(
-        Integer, ForeignKey("albums.id"), nullable=True
-    )  # One-to-Many ( One album )
+        Integer, ForeignKey("albums.id", ondelete="SET NULL"), nullable=True
+    )
+
+    album = relationship("Album", back_populates="songs")
+    payments = relationship(
+        "Payment", back_populates="song", cascade="all, delete-orphan"
+    )
 
 
+# Payments
 class Payment(Base):
     __tablename__ = "payments"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    song_id = Column(Integer, ForeignKey("songs.id"), nullable=False)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    song_id = Column(
+        Integer, ForeignKey("songs.id", ondelete="CASCADE"), nullable=False
+    )
     amount = Column(Numeric(10, 2), nullable=False)
-    payment_date = Column(DateTime, default=datetime.now())
+    payment_date = Column(DateTime, server_default=func.now())
     status = Column(String(20), nullable=False)
 
-    # user = relationship("User", back_populates="payments")
-    # song = relationship("Song", back_populates="payments")
+    user = relationship("User", back_populates="payments")
+    song = relationship("Song", back_populates="payments")

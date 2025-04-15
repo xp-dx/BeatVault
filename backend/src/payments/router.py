@@ -1,20 +1,22 @@
-from fastapi import APIRouter, HTTPException, responses, Request, Depends
+from fastapi import APIRouter, HTTPException, Request, Depends, status
 
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import stripe
-
-import json
 
 from typing import Annotated
 
 from src.auth import dependencies as _auth_dependencies, schemas as _auth_schemas
+from src.songs import service as _songs_service
+from src.auth import service as _auth_service
+
 
 from . import config as _config, crud as _crud, schemas as _schemas
 
 from .. import dependencies as _global_dependencies, models as _global_models
 
-router = APIRouter(tags=["payment"])
+router = APIRouter(tags=["payment"], prefix="/payment")
 
 stripe.api_key = _config.STRIPE_SECRET_KEY
 endpoint_secret = _config.ENDPOINT_SECRET
@@ -26,29 +28,39 @@ async def create_checkout_session(
         _auth_schemas.UserEmail, Depends(_auth_dependencies.get_current_active_user)
     ],
     song_id: int,
-    db: Session = Depends(_global_dependencies.get_db),
-    # current_user_id=1,
+    db: AsyncSession = Depends(_global_dependencies.get_async_session),
 ):
-    # current_user = (
-    #     db.query(_global_models.User)
-    #     .filter(_global_models.User.id == current_user_id)
-    #     .first()
-    # )
-    song = (
-        db.query(_global_models.Song).filter(_global_models.Song.id == song_id).first()
+    song_result = await db.execute(
+        select(_global_models.Song).where(_global_models.Song.id == song_id)
     )
+    song = song_result.scalar_one_or_none()
+    if not song:
+        raise HTTPException(status_code=404, detail="Song not found")
 
-    seller_id = (
-        db.query(_global_models.UserSong)
-        .filter(_global_models.UserSong.song_id == song.id)
-        .first()
-        .user_id
+    user_song_result = await db.execute(
+        select(_global_models.UserSong.user_id).where(
+            _global_models.UserSong.song_id == song.id
+        )
     )
-    seller = (
-        db.query(_global_models.User)
-        .filter(_global_models.User.id == seller_id)
-        .first()
+    seller_id = user_song_result.scalar_one_or_none()
+    if not seller_id:
+        raise HTTPException(status_code=404, detail="Song owner not found")
+
+    seller_result = await db.execute(
+        select(_global_models.User).where(_global_models.User.id == seller_id)
     )
+    seller = seller_result.scalar_one_or_none()
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not found")
+
+    # Проверяем доступ
+    user_result = await _auth_service.get_user_by_email(db=db, email=current_user.email)
+    has_access = await _songs_service.check_access_to_song(user_result, song, db)
+    if has_access:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="You already have access to this song",
+        )
 
     checkout_session = stripe.checkout.Session.create(
         line_items=[
@@ -68,21 +80,21 @@ async def create_checkout_session(
             "song_id": song.id,
         },
         mode="payment",
-        success_url=_config.BASE_URL + f"/download-song/{song_id}",
+        success_url=_config.BASE_URL + f"/songs/download-song/{song_id}",
         cancel_url=_config.BASE_URL + "/songs",
         customer_email=current_user.email,
-        payment_intent_data={
-            "transfer_data": {
-                "destination": seller.stripe_account_id,
-            }
-        },
+        # payment_intent_data={
+        #     "transfer_data": {
+        #         "destination": seller.stripe_account_id,
+        #     }
+        # },
     )
-    return responses.RedirectResponse(checkout_session.url, status_code=303)
+    return {"redirect_url": checkout_session.url}
 
 
 @router.post("/webhook/")
 async def stripe_webhook(
-    request: Request, db: Session = Depends(_global_dependencies.get_db)
+    request: Request, db: AsyncSession = Depends(_global_dependencies.get_async_session)
 ):
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
@@ -92,24 +104,27 @@ async def stripe_webhook(
         event = stripe.Webhook.construct_event(
             payload=payload, sig_header=sig_header, secret=endpoint_secret
         )
-    except ValueError as e:
+    except ValueError:
         print("Invalid payload")
         raise HTTPException(status_code=400, detail="Invalid payload")
-    except stripe.error.SignatureVerificationError as e:
+    except stripe.error.SignatureVerificationError:
         print("Invalid signature")
         raise HTTPException(status_code=400, detail="Invalid signature")
 
     print("event received is", event)
+
     if event["type"] == "checkout.session.completed":
         payment = event["data"]["object"]
         amount = payment["amount_total"] / 100
-        user_id = payment["metadata"]["user_id"]
-        song_id = payment["metadata"]["song_id"]
+        user_id = int(payment["metadata"]["user_id"])
+        song_id = int(payment["metadata"]["song_id"])
         status = "successfully"
 
         payment_inf = _schemas.Payment(
             user_id=user_id, song_id=song_id, amount=amount, status=status
         )
-        _crud.upload_payment(db=db, payment_inf=payment_inf)
+
+        await _crud.upload_payment(db=db, payment_inf=payment_inf)
         return {"status": "success"}
+
     return {"status": "event not handled"}
