@@ -81,8 +81,8 @@ async def confirm_email(token: str, db: AsyncSession):
 
 async def is_verified(email: str, db: AsyncSession):
     user = (
-        await db.execute(select(_global_models.User)).where(
-            _global_models.User.email == email
+        await db.execute(
+            select(_global_models.User).where(_global_models.User.email == email)
         )
     ).scalar_one_or_none()
     return user is not None and user.is_verified

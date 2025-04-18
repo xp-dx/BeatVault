@@ -13,10 +13,14 @@ DB_PORT = os.getenv("DB_PORT")
 # Token
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-# Redis
-REDIS_URL = os.getenv("REDIS_URL")
+# Celery
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
+
+# Redis
+REDIS_URL = os.getenv("REDIS_URL")
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
 
 # SMTP
 SMTP_HOST = os.getenv("SMTP_HOST")

@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from contextlib import asynccontextmanager
+
+from src.celery.redis_manager import redis_manager
 
 from .auth import router as auth_router
 from .songs import router as songs_router
@@ -16,7 +17,9 @@ from . import services as _global_services
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await _global_services.create_database()
+    await redis_manager.init()  # Инициализация один раз
     yield
+    await redis_manager.close()
 
 
 app = FastAPI(
