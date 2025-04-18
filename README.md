@@ -14,6 +14,8 @@ A pet project for buying and selling music, built with modern Python technologie
 - **Alembic** – database migrations management  
 - **Docker** – containerization for easy deployment  
 - **Stripe** – payment gateway integration  
+- **Celery** – background task processing
+- **Redis** – message broker for Celery tasks
 - **AsyncIO** – for scalable and non-blocking operations
 
 ## 💡 Features
@@ -26,7 +28,8 @@ A pet project for buying and selling music, built with modern Python technologie
 - Purchase tracks securely via Stripe
 - Download purchased tracks
 - Create and manage music albums
-- Admin functionality (optional)
+- Background tasks (email confirmation)
+- Admin functionality
 
 ## 📂 Project Structure
 
@@ -88,6 +91,28 @@ A pet project for buying and selling music, built with modern Python technologie
 │   │   │   ├── router.py
 │   │   │   ├── schemas.py
 │   │   │   └── service.py
+│   │   ├── celery
+│   │   │   ├── celery_app.py
+│   │   │   ├── email
+│   │   │   │   ├── dependencies.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── __pycache__
+│   │   │   │   │   ├── dependencies.cpython-312.pyc
+│   │   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   │   ├── service.cpython-312.pyc
+│   │   │   │   │   └── tasks.cpython-312.pyc
+│   │   │   │   ├── service.py
+│   │   │   │   └── tasks.py
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── celery_app.cpython-312.pyc
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   ├── redis.cpython-312.pyc
+│   │   │   │   ├── redis_manager.cpython-312.pyc
+│   │   │   │   ├── tasks.cpython-312.pyc
+│   │   │   │   └── utils.cpython-312.pyc
+│   │   │   ├── redis_manager.py
+│   │   │   └── worker.py
 │   │   ├── config.py
 │   │   ├── database.py
 │   │   ├── dependencies.py
@@ -152,7 +177,7 @@ A pet project for buying and selling music, built with modern Python technologie
 
 ## ✅ To Do
 
-- Store uploaded audio in cloud (e.g. AWS S3 or local with NGINX)
+- Store uploaded audio in cloud
 - Invoice and email receipt system
 - Advanced search and filtering
 - Unit and integration testing
