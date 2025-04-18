@@ -52,24 +52,12 @@ A pet project for buying and selling music, built with modern Python technologie
 │   │   │   ├── crud.py
 │   │   │   ├── dependecies.py
 │   │   │   ├── __init__.py
-│   │   │   ├── __pycache__
-│   │   │   │   ├── crud.cpython-312.pyc
-│   │   │   │   ├── __init__.cpython-312.pyc
-│   │   │   │   ├── router.cpython-312.pyc
-│   │   │   │   └── service.cpython-312.pyc
 │   │   │   ├── router.py
 │   │   │   └── service.py
 │   │   ├── albums
 │   │   │   ├── constants.py
 │   │   │   ├── crud.py
 │   │   │   ├── __init__.py
-│   │   │   ├── __pycache__
-│   │   │   │   ├── constants.cpython-312.pyc
-│   │   │   │   ├── crud.cpython-312.pyc
-│   │   │   │   ├── __init__.cpython-312.pyc
-│   │   │   │   ├── router.cpython-312.pyc
-│   │   │   │   ├── schemas.cpython-312.pyc
-│   │   │   │   └── service.cpython-312.pyc
 │   │   │   ├── router.py
 │   │   │   ├── schemas.py
 │   │   │   └── service.py
@@ -79,15 +67,6 @@ A pet project for buying and selling music, built with modern Python technologie
 │   │   │   ├── crud.py
 │   │   │   ├── dependencies.py
 │   │   │   ├── __init__.py
-│   │   │   ├── __pycache__
-│   │   │   │   ├── config.cpython-312.pyc
-│   │   │   │   ├── constants.cpython-312.pyc
-│   │   │   │   ├── crud.cpython-312.pyc
-│   │   │   │   ├── dependencies.cpython-312.pyc
-│   │   │   │   ├── __init__.cpython-312.pyc
-│   │   │   │   ├── router.cpython-312.pyc
-│   │   │   │   ├── schemas.cpython-312.pyc
-│   │   │   │   └── service.cpython-312.pyc
 │   │   │   ├── router.py
 │   │   │   ├── schemas.py
 │   │   │   └── service.py
@@ -96,21 +75,9 @@ A pet project for buying and selling music, built with modern Python technologie
 │   │   │   ├── email
 │   │   │   │   ├── dependencies.py
 │   │   │   │   ├── __init__.py
-│   │   │   │   ├── __pycache__
-│   │   │   │   │   ├── dependencies.cpython-312.pyc
-│   │   │   │   │   ├── __init__.cpython-312.pyc
-│   │   │   │   │   ├── service.cpython-312.pyc
-│   │   │   │   │   └── tasks.cpython-312.pyc
 │   │   │   │   ├── service.py
 │   │   │   │   └── tasks.py
 │   │   │   ├── __init__.py
-│   │   │   ├── __pycache__
-│   │   │   │   ├── celery_app.cpython-312.pyc
-│   │   │   │   ├── __init__.cpython-312.pyc
-│   │   │   │   ├── redis.cpython-312.pyc
-│   │   │   │   ├── redis_manager.cpython-312.pyc
-│   │   │   │   ├── tasks.cpython-312.pyc
-│   │   │   │   └── utils.cpython-312.pyc
 │   │   │   ├── redis_manager.py
 │   │   │   └── worker.py
 │   │   ├── config.py
@@ -123,54 +90,24 @@ A pet project for buying and selling music, built with modern Python technologie
 │   │   │   ├── config.py
 │   │   │   ├── crud.py
 │   │   │   ├── __init__.py
-│   │   │   ├── __pycache__
-│   │   │   │   ├── config.cpython-312.pyc
-│   │   │   │   ├── crud.cpython-312.pyc
-│   │   │   │   ├── __init__.cpython-312.pyc
-│   │   │   │   ├── router.cpython-312.pyc
-│   │   │   │   ├── schemas.cpython-312.pyc
-│   │   │   │   └── service.cpython-312.pyc
 │   │   │   ├── router.py
 │   │   │   ├── schemas.py
 │   │   │   └── service.py
-│   │   ├── __pycache__
-│   │   │   ├── config.cpython-312.pyc
-│   │   │   ├── database.cpython-312.pyc
-│   │   │   ├── dependencies.cpython-312.pyc
-│   │   │   ├── __init__.cpython-312.pyc
-│   │   │   ├── main.cpython-312.pyc
-│   │   │   ├── models.cpython-312.pyc
-│   │   │   ├── schemas.cpython-312.pyc
-│   │   │   └── services.cpython-312.pyc
 │   │   ├── services.py
 │   │   ├── songs
 │   │   │   ├── constants.py
 │   │   │   ├── crud.py
 │   │   │   ├── __init__.py
-│   │   │   ├── __pycache__
-│   │   │   │   ├── constants.cpython-312.pyc
-│   │   │   │   ├── crud.cpython-312.pyc
-│   │   │   │   ├── __init__.cpython-312.pyc
-│   │   │   │   ├── router.cpython-312.pyc
-│   │   │   │   ├── schemas.cpython-312.pyc
-│   │   │   │   └── service.cpython-312.pyc
 │   │   │   ├── router.py
 │   │   │   ├── schemas.py
 │   │   │   └── service.py
 │   │   └── users
 │   │       ├── crud.py
 │   │       ├── __init__.py
-│   │       ├── __pycache__
-│   │       │   ├── crud.cpython-312.pyc
-│   │       │   ├── __init__.cpython-312.pyc
-│   │       │   └── router.cpython-312.pyc
 │   │       └── router.py
 │   ├── test.py
 │   └── tests
 │       ├── __init__.py
-│       ├── __pycache__
-│       │   ├── __init__.cpython-312.pyc
-│       │   └── test_auth.cpython-312-pytest-8.3.5.pyc
 │       └── test_auth.py
 └── README.md
 ```
