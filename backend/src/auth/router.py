@@ -23,18 +23,6 @@ from typing import Annotated
 
 from datetime import timedelta
 
-import aiosmtplib
-
-from src.celery.qr import (
-    service as _qr_service,
-    tasks as _qr_tasks,
-    dependencies as _qr_dependencies,
-)
-from src.celery.sms import (
-    service as _sms_service,
-    tasks as _sms_tasks,
-    dependencies as _sms_dependencies,
-)
 from src.celery.email import (
     service as _email_service,
     tasks as _email_tasks,
@@ -158,78 +146,3 @@ async def confirm_email(
         raise HTTPException(status_code=400, detail="Token expired")
     except JWTError:
         raise HTTPException(status_code=400, detail="Invalid token")
-
-
-# @router.post("/request-confirm-sms", tags=["users"])
-# async def send_confirmation_sms(phone: str):
-#     """Запускает отправку SMS с кодом подтверждения"""
-#     task = await _sms_tasks.send_phone_confirmation_sms_async(phone)
-#     return {"message": "SMS отправляется", "task_id": task.id}
-
-
-# @router.post("/confirm-sms", tags=["users"])
-# async def verify_sms(phone: str, code: str):
-#     """Проверяет код подтверждения из SMS"""
-#     is_valid = await _sms_service.verify_sms_code(phone, code)
-#     if not is_valid:
-#         raise HTTPException(status_code=400, detail="Неверный код подтверждения")
-#     return {"message": "Телефон успешно подтвержден"}
-
-
-@router.get("/generate-qr")
-async def generate_qr(
-    user_id: str = None,
-    qr_client: Redis = Depends(_qr_dependencies.get_qr_client),
-):
-    """Генерирует QR-код для входа"""
-    result = await _qr_tasks.generate_login_qr_task(qr_client, user_id)
-    return StreamingResponse(
-        io.BytesIO(result["qr_image"]),
-        media_type="image/png",
-        headers={"X-QR-Token": result["token"]},
-    )
-
-
-@router.post("/auth-via-qr", tags=["users"])
-async def auth_via_qr(
-    token: str,
-    qr_client: Redis = Depends(_qr_dependencies.get_qr_client),
-):
-    return await _qr_tasks.authenticate_via_qr_task(token, qr_client)
-
-
-@router.get("/check-qr-status/{token}")
-async def check_qr_status(token: str):
-    """Проверяет статус QR-аутентификации"""
-    result = await _qr_tasks.verify_qr_token_task(token)
-    if result["status"] == "invalid":
-        raise HTTPException(status_code=404, detail="Token not found")
-    return result
-
-
-@router.post("/confirm-qr-login/{token}")
-async def confirm_qr_login(token: str, user_id: str):
-    """Подтверждает вход по QR-коду"""
-    result = await _qr_tasks.authenticate_via_qr_task(token, user_id)
-    if result["status"] == "error":
-        raise HTTPException(status_code=400, detail="Invalid token")
-    return result
-
-
-# @router.post("/send-code")
-# async def send_verification_code(phone: str):
-#     send_sms_code(phone)
-#     return {"message": "Код отправлен"}
-
-
-# @router.post("/verify-code")
-# async def verify_code(phone: str, user_code: str):
-#     """Проверяет введенный код."""
-#     stored_code = _redis.redis_client.get(f"phone_verify:{phone}")
-#     if not stored_code:
-#         raise HTTPException(status_code=400, detail="Код устарел или не существует")
-
-#     if stored_code.decode() != user_code:
-#         raise HTTPException(status_code=400, detail="Неверный код")
-
-#     return {"success": True, "message": "Номер подтвержден"}
